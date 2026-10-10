@@ -1,0 +1,12 @@
+{
+  "name": "genre-transcript",
+  "genre": "transcript",
+  "specialists": {
+    "actionable": null
+  },
+  "thresholds": {
+    "claim_kept": 0.95,
+    "long_sentence": 60,
+    "summary_share": 0.08
+  }
+}

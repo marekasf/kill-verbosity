@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" font-family="Inter, Helvetica, Arial, sans-serif">
+<defs>
+<marker id="ab" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#1B1F2A"/></marker>
+<marker id="ar" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#D6452F"/></marker>
+<marker id="ag" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#1F8A5B"/></marker>
+</defs>
+<rect width="1600" height="900" fill="#FAFAF7"/>
+<text x="800" y="85" text-anchor="middle" font-size="56" font-weight="700" fill="#1B1F2A">Three sins, three fixes</text>
+<rect x="60" y="180" width="560" height="170" rx="24" fill="#FBE3DE" stroke="#D6452F" stroke-width="5"/>
+<text x="340" y="285" text-anchor="middle" font-size="52" font-weight="700" fill="#B5321F">Verbose</text>
+<line x1="650" y1="265" x2="930" y2="265" stroke="#1B1F2A" stroke-width="8" marker-end="url(#ab)"/>
+<rect x="960" y="180" width="580" height="170" rx="24" fill="#DDF1E8" stroke="#1F8A5B" stroke-width="5"/>
+<text x="1250" y="265" text-anchor="middle" font-size="60" font-weight="700" fill="#146B45">Short</text>
+<text x="1250" y="315" text-anchor="middle" font-size="30" fill="#1B1F2A">cut it, keep the meaning</text>
+<rect x="60" y="410" width="560" height="170" rx="24" fill="#FBE3DE" stroke="#D6452F" stroke-width="5"/>
+<text x="340" y="515" text-anchor="middle" font-size="52" font-weight="700" fill="#B5321F">Over-eager</text>
+<line x1="650" y1="495" x2="930" y2="495" stroke="#1B1F2A" stroke-width="8" marker-end="url(#ab)"/>
+<rect x="960" y="410" width="580" height="170" rx="24" fill="#DDF1E8" stroke="#1F8A5B" stroke-width="5"/>
+<text x="1250" y="495" text-anchor="middle" font-size="60" font-weight="700" fill="#146B45">Lazy</text>
+<text x="1250" y="545" text-anchor="middle" font-size="30" fill="#1B1F2A">does this need to exist?</text>
+<rect x="60" y="640" width="560" height="170" rx="24" fill="#FBE3DE" stroke="#D6452F" stroke-width="5"/>
+<text x="340" y="745" text-anchor="middle" font-size="52" font-weight="700" fill="#B5321F">Confidently wrong</text>
+<line x1="650" y1="725" x2="930" y2="725" stroke="#1B1F2A" stroke-width="8" marker-end="url(#ab)"/>
+<rect x="960" y="640" width="580" height="170" rx="24" fill="#DDF1E8" stroke="#1F8A5B" stroke-width="5"/>
+<text x="1250" y="725" text-anchor="middle" font-size="60" font-weight="700" fill="#146B45">Honest</text>
+<text x="1250" y="775" text-anchor="middle" font-size="30" fill="#1B1F2A">prove it: command + output</text>
+</svg>

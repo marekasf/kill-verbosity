@@ -1,0 +1,11 @@
+{
+  "name": "genre-reference",
+  "genre": "reference",
+  "specialists": {
+    "summary": null,
+    "actionable": null
+  },
+  "thresholds": {
+    "long_sentence": 40
+  }
+}

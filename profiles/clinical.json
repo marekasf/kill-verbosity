@@ -1,0 +1,76 @@
+{
+  "name": "clinical",
+  "domain_jargon": [
+    "per protocol",
+    "in a timely fashion",
+    "as per",
+    "modality",
+    "utili[sz]ation review",
+    "care pathway",
+    "patient journey"
+  ],
+  "safe_metaphors": {
+    "add": [
+      "titre",
+      "washout",
+      "arm",
+      "window",
+      "burden"
+    ]
+  },
+  "units": {
+    "add": [
+      "mg",
+      "mcg",
+      "ug",
+      "mL",
+      "L",
+      "kg",
+      "g",
+      "mmHg",
+      "IU",
+      "mmol"
+    ]
+  },
+  "id_families": [
+    "[A-Z]{2,4}-\\d{2,5}",
+    "R-\\d+"
+  ],
+  "corporate_headers": {
+    "add": [
+      "Background and Rationale",
+      "Discussion"
+    ]
+  },
+  "safe_acronyms": [
+    "AE", "SAE", "CRF", "eCRF", "ICF", "IRB", "IEC", "PI", "CRO", "GCP",
+    "ITT", "PP", "PK", "PD", "QoL", "BMI", "ECG", "IV", "PO", "MedDRA"
+  ],
+  "thresholds": {
+    "long_sentence": 35,
+    "summary_share": 0.12
+  },
+  "unit_canon": {
+    "mcg": "mcg",
+    "ug": "mcg",
+    "mg": "mg",
+    "g": "g",
+    "kg": "kg",
+    "ml": "mL",
+    "l": "L",
+    "mmhg": "mmHg",
+    "iu": "IU",
+    "mmol": "mmol"
+  },
+  "unit_family": {
+    "mcg": "mass",
+    "mg": "mass",
+    "g": "mass",
+    "kg": "mass",
+    "mL": "volume",
+    "L": "volume",
+    "mmHg": "",
+    "IU": "",
+    "mmol": ""
+  }
+}

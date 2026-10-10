@@ -1,0 +1,71 @@
+#!/usr/bin/env python3
+"""Launcher for the killverbosity package, which sits beside this file.
+
+Standard library only: no virtualenv, no install step. `.resolve()` follows a
+symlink, so the launcher works when the skill directory is linked into place;
+a hard link or a lone copy of this file cannot find the package, so link or
+copy the whole directory.
+"""
+
+import codecs
+import locale
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+if sys.version_info < (3, 9):
+    sys.exit("kill-verbosity: needs Python 3.9 or newer")
+
+HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+WINDOWS = os.name == "nt"
+
+
+def text_is_utf8():
+    """Would this interpreter's default text IO read and write UTF-8?
+
+    `sys.flags.utf8_mode` says whether UTF-8 mode was asked for, and on an
+    ordinary POSIX host it is 0 while the default codec is already UTF-8, so
+    the flag alone is not enough. The default codec is what `open()` picks when
+    no encoding is named, and that is `locale.getpreferredencoding(False)`.
+    """
+    if sys.flags.utf8_mode:
+        return True
+    try:
+        return codecs.lookup(locale.getpreferredencoding(False)).name == "utf-8"
+    except (LookupError, ValueError):
+        return False
+
+
+def reexec_utf8():
+    """Restart under `-X utf8` when the default text encoding is not UTF-8.
+
+    Windows defaults text IO to the ANSI code page, so the tool would decode
+    its own shipped files with `cp1252` and fail. The loop guard is removed on
+    read, so a descendant process (an agent session that runs this tool again)
+    does not inherit it and skip its own check.
+    """
+    if os.environ.pop("KV_REEXEC", None) or text_is_utf8():
+        return
+    os.environ["KV_REEXEC"] = "1"
+    flags = ["-X", "utf8"] + ["-O"] * sys.flags.optimize
+    if sys.flags.dont_write_bytecode:
+        flags.append("-B")
+    cmd = [sys.executable, *flags, str(Path(__file__).resolve()), *sys.argv[1:]]
+    if WINDOWS:
+        # os.execv on Windows starts a new process and returns to the shell
+        # before it finishes, so wait for the child and pass its status on.
+        raise SystemExit(subprocess.run(cmd).returncode)  # noqa: S603
+    os.execv(sys.executable, cmd)
+
+
+def main():
+    from killverbosity._legacy import main as run
+    return run()
+
+
+if __name__ == "__main__":
+    sys.dont_write_bytecode = True
+    reexec_utf8()
+    sys.exit(main())

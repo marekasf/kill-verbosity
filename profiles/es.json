@@ -1,0 +1,14 @@
+{
+  "name": "es",
+  "langs": ["en", "es"],
+  "words": {
+    "es": {
+      "message scaffold": ["para pegar", "borrador de respuesta"],
+      "omission note": ["omitido", "no incluido aquí", "si pregunta"],
+      "sign-off": ["avísame", "quedo atento", "cualquier duda"],
+      "corrects the reader": ["no,", "en realidad,"],
+      "buried lead": ["lo más importante"],
+      "summary heading": ["resumen", "resumen ejecutivo", "conclusiones"]
+    }
+  }
+}

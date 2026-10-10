@@ -1,0 +1,7 @@
+{
+  "name": "general",
+  "domain_jargon": [],
+  "tooling_names": {"add": ["chatgpt", "copilot", "the model", "the assistant"]},
+  "id_families": {"add": ["#\\d{2,5}", "[A-Z]{2,5}-\\d{1,5}"]},
+  "thresholds": {"summary_share": 0.2}
+}

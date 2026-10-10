@@ -1,0 +1,14 @@
+{
+  "name": "genre-log",
+  "genre": "log",
+  "shapes": {
+    "drop": [
+      "worklog",
+      "draft diff"
+    ]
+  },
+  "specialists": {
+    "summary": null,
+    "planning": null
+  }
+}

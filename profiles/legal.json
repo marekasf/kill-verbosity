@@ -1,0 +1,14 @@
+{
+  "name": "legal",
+  "domain_jargon": [
+    "hereinafter", "aforementioned", "notwithstanding the foregoing",
+    "inter alia", "mutatis mutandis", "for the avoidance of doubt",
+    "without prejudice to the generality"
+  ],
+  "safe_metaphors": {"add": ["docket", "chain of custody", "instrument", "party", "consideration"]},
+  "id_families": ["\\u00a7\\s?\\d+(?:\\.\\d+)*", "Cl(?:ause)?\\.?\\s?\\d+", "Sch(?:edule)?\\.?\\s?\\d+"],
+  "corporate_headers": {"add": ["Recitals", "Definitions and Interpretation"]},
+  "safe_acronyms": ["NDA", "MSA", "SLA", "SOW", "IP", "LLC", "PLC", "GDPR",
+                    "DPA", "T&Cs", "UCC", "ADR"],
+  "thresholds": {"long_sentence": 40, "claim_kept": 0.75}
+}

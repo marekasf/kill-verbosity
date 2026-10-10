@@ -1,0 +1,12 @@
+{
+  "name": "genre-checklist",
+  "genre": "checklist",
+  "specialists": {
+    "summary": null,
+    "structure": null,
+    "planning": null
+  },
+  "thresholds": {
+    "long_sentence": 40
+  }
+}
