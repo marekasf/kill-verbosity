@@ -1,9 +1,6 @@
-"""`--agent codex` was quota-limited, all 5 jobs fell through to agy, and `run`
-announced the substitution three times (per-job, the mid-report count, the
-"ALL N JOBS SUBSTITUTED" banner) and then wrote the `.kv.md` anyway. The exit
-code was 1 for an unrelated reason (QUOTATIONS LOST), which hid the
-substitution further: a caller acting on the exit code alone got a document
-edited by a vendor it did not ask for, with a record saying it had been told.
+"""A run whose specialists were ALL answered by a fallback agent writes its
+output like any other run. A fallback is normal behaviour, not an error.
+`--any-agent` is still accepted so old commands parse.
 """
 
 from __future__ import annotations
@@ -57,43 +54,32 @@ def _drive(kv, monkeypatch, tmp_path, capsys, extra_argv, substitute):
     return rc, out, captured
 
 
-def test_all_substituted_and_explicitly_named_agent_stops(
+def test_all_substituted_and_explicitly_named_agent_writes(
         kv, monkeypatch, tmp_path, capsys):
     rc, out, captured = _drive(
         kv, monkeypatch, tmp_path, capsys,
         ["--agent", "codex"], substitute=lambda i: True)
 
-    assert rc == 6, (rc, captured.err)
-    assert not out.exists(), "exit 6 must not write the output file"
-    assert not kv.run_record_path(out).exists(), \
-        "exit 6 must not write a run record for a document it never wrote"
-    assert "ALL" in captured.err and "codex" in captured.err, captured.err
-    assert "--any-agent" in captured.err, captured.err
-    assert kv.journal_path(out).exists(), \
-        "the substituted answers must still be banked for a rerun to reuse"
+    assert rc != 6, (rc, captured.err)
+    assert out.exists(), "an all-substituted run must write its output"
+    assert kv.run_record_path(out).exists(), captured.err
+    assert "nothing is written" not in captured.err, captured.err
+    assert "--any-agent" not in captured.err + captured.out
 
 
-def test_all_substituted_with_agent_left_at_its_default_does_not_stop(
+def test_all_substituted_with_agent_left_at_its_default_writes(
         kv, monkeypatch, tmp_path, capsys):
-    """Negative control. Without `--agent` on the command line at all,
-    `agent_explicit` must read false and this run must behave exactly as it
-    did before -- proceed and write the output. This is the test
-    that must fail if the explicit/default distinction is ever dropped and
-    every all-substituted run is stopped regardless of how --agent arrived."""
     rc, out, captured = _drive(
         kv, monkeypatch, tmp_path, capsys,
         [], substitute=lambda i: True)
 
     assert rc != 6, (rc, captured.err)
     assert out.exists(), "a defaulted --agent must still write its output"
-    assert "SUBSTITUTED" not in captured.out, \
-        "an agent nobody named falls back silently -- no substitution banner"
+    assert "SUBSTITUTED" not in captured.out
     assert "failed, answered by" not in captured.err, captured.err
 
 
-def test_partial_substitution_does_not_stop(kv, monkeypatch, tmp_path, capsys):
-    """Some, not all, jobs substituted -- a real run measured 5 of 5, and this
-    must stay a warning rather than widen to "any job substituted"."""
+def test_partial_substitution_writes(kv, monkeypatch, tmp_path, capsys):
     rc, out, captured = _drive(
         kv, monkeypatch, tmp_path, capsys,
         ["--agent", "codex"], substitute=lambda i: i == 0)
@@ -102,13 +88,11 @@ def test_partial_substitution_does_not_stop(kv, monkeypatch, tmp_path, capsys):
     assert out.exists(), "a partial substitution must still write its output"
 
 
-def test_any_agent_proceeds_and_says_so(kv, monkeypatch, tmp_path, capsys):
+def test_any_agent_is_accepted_and_ignored(kv, monkeypatch, tmp_path, capsys):
     rc, out, captured = _drive(
         kv, monkeypatch, tmp_path, capsys,
         ["--agent", "codex", "--any-agent"], substitute=lambda i: True)
 
     assert rc != 6, (rc, captured.err)
-    assert out.exists(), "--any-agent must let the run proceed to write"
-    assert "--any-agent" in captured.out, captured.out
-    assert "ANY-AGENT" in captured.out, \
-        "the override must be stamped on its own line"
+    assert out.exists()
+    assert "ANY-AGENT" not in captured.out, captured.out

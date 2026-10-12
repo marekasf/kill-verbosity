@@ -657,8 +657,11 @@ nothing catches it drifting. When a rule changes in a specialist prompt, change
 it there too.
 
 `profiles/` holds the data the shapes are built from. `genre-*.json` loads
-automatically when `plan` or `run` recognises the document's genre; everything
-else is named in `.killverbosity.json`. See `SKILL.md` for the format.
+automatically when `plan` or `run` recognises the document's genre. The domain
+profiles (`clinical`, `legal`, `general`) and `es` load automatically too,
+from the document's own words; `plan` and `run` print a `modules:` line that
+names each one and why it loaded. A profile named in `.killverbosity.json` is
+an override and replaces the detection. See `SKILL.md` for the format.
 
 `targets` narrows a declaration's `profile`/`specialists` to the globs it
 names, the same arithmetic `refuse.paths` already does for a refusal: a
@@ -719,10 +722,10 @@ happens.
 **A failed agent falls back to the other installed CLIs.** If the agent a job
 asked for fails, the other local CLIs are tried in turn — claude, codex, agy,
 skipping the one asked for and any not on PATH — sharing the job's remaining
-time. A job answered by a fallback is reported as substituted, because its
-edits came from a different model than the one requested. If `--agent` was
-named explicitly and every job was answered by a fallback, the run stops before
-writing (exit 6) unless `--any-agent` says any agent will do. `crosscheck`
+time. A job answered by a fallback is recorded as substituted, because its
+edits came from a different model than the one requested. A run answered
+entirely by fallbacks still writes its output, and `--any-agent` is accepted
+and ignored. `crosscheck`
 falls back the same way but never to an agent of the writer's vendor, since a
 second opinion from the same family is not a second opinion; when no eligible
 reviewer is left it exits 5 and records why. Only installation is checked

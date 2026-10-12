@@ -407,7 +407,6 @@ from killverbosity.runrecord import (
     JOURNAL_SUFFIX,
     RUN_SUFFIX,
     answered_fields,
-    answered_tail,
     answering_backends,
     baseline_path,
     cross_writers,
@@ -597,7 +596,7 @@ def load_profile(spec):
 
 def reset_profile():
     """Put the default build back. Used between profiles in the selftest."""
-    global PROFILE_NAME, PROFILE_GENRE
+    global PROFILE_NAME, PROFILE_GENRE, MODULES
     VOCAB.clear()
     VOCAB.update({k: (dict(v) if isinstance(v, dict) else list(v))
                   for k, v in DEFAULT_VOCAB.items()})
@@ -620,6 +619,7 @@ def reset_profile():
     SWITCHED_OFF.clear()
     PROFILE_NAME = "default"
     PROFILE_GENRE = None
+    MODULES = None
     apply_profile({}, {}, "<defaults>")
 
 
@@ -3913,38 +3913,6 @@ def agent_answer(agent, stdout):
     return result.get("response") if isinstance(result.get("response"), str) else ""
 
 
-_CAUSE_402_RE = re.compile(r"\b402\b|insufficient credit", re.I)
-_CAUSE_QUOTA_RE = re.compile(
-    r"\bquota\b|\brate.?limit(?:ed)?\b|\b429\b|usage limit", re.I)
-_CAUSE_AUTH_RE = re.compile(
-    r"\bunauthoriz|\b401\b|\b403\b|\bapi.?key\b|not authenticated|"
-    r"\blogin\b|\bauth(?:entication)?\b|token refresh|\boauth\b", re.I)
-
-
-def _subst_cause(reason):
-    """One of `402` / `quota` / `auth` / `other` for a failure text."""
-    if _CAUSE_402_RE.search(reason):
-        return "402"
-    if _CAUSE_QUOTA_RE.search(reason):
-        return "quota"
-    if _CAUSE_AUTH_RE.search(reason):
-        return "auth"
-    return "other"
-
-
-_FELL_FAILED_RE = re.compile(r"^(\S+) failed, answered by \S+ instead — (.*)$")
-
-
-def _subst_rung_causes(msgs):
-    """(agent, cause) for every failed agent a substituted job's messages name."""
-    out = []
-    for msg in msgs:
-        m = _FELL_FAILED_RE.match(msg)
-        if m:
-            out.append((m.group(1), _subst_cause(m.group(2))))
-    return out
-
-
 def _call_one(prompt, agent, timeout, say=None, answered=None):
     """One shot at one local agent CLI. Returns (stdout, error).
 
@@ -5954,6 +5922,7 @@ def cmd_run(args, launcher=None):
           + (f", profile {loaded}" if loaded else "")
           + f"  ·  build {build_id()}"
           + f"  ·  budget {args.timeout}s (--timeout)", file=sys.stderr)
+    print(modules_line(loaded))
     if args.timeout > 600:
         print(f"this run may take up to {args.timeout}s. A caller whose own "
               f"command timeout is shorter kills it before it finishes and "
@@ -6221,7 +6190,7 @@ def cmd_run(args, launcher=None):
         _subst = []
 
         def _fell(msg, _j=job):
-            if "failed, answered by" in msg:
+            if "failed, answered by" in msg or "also failed" in msg:
                 _subst.append(msg)
             # A fall is silent: the run record says who answered.
 
@@ -6274,8 +6243,7 @@ def cmd_run(args, launcher=None):
                                    "result": {**answer, **_who,
                                               "substituted": bool(_subst)}})
                        + "\n")
-        return {**job, **answer, "substituted": bool(_subst),
-                "subst_msgs": list(_subst), **_who}
+        return {**job, **answer, "substituted": bool(_subst), **_who}
 
     _first = ("summary", "structure")
     _sending = sorted(jobs, key=lambda j: (j["specialist"] not in _first,
@@ -6296,8 +6264,7 @@ def cmd_run(args, launcher=None):
                     r = f.result()
                     results[_slot[id(futures[f])]] = r
                     _done += 1
-                    mark = "!" if r.get("error") else (
-                        "~" if r.get("substituted") else "·")
+                    mark = "!" if r.get("error") else "·"
                     n_ed = len(r.get("edits", []))
                     tag = error_digest(r.get("error")) if r.get("error") else ""
                     if tag in said:
@@ -6361,8 +6328,7 @@ def cmd_run(args, launcher=None):
             _tag = ""
         elif _tag:
             said.add(_tag)
-        _retry_mark = "!" if again.get("error") else (
-            "~" if again.get("substituted") else "·")
+        _retry_mark = "!" if again.get("error") else "·"
         print(f"  [ retry ] {_retry_mark} "
               f"{int(time.monotonic() - _t0):>4}s {again['specialist']:<11} "
               f"{len(again.get('edits', [])):>2} proposed  {again['unit']}"
@@ -6475,28 +6441,6 @@ def cmd_run(args, launcher=None):
 
     order = list(SPECIALISTS)
     _answered = [answered_fields(r) for r in results]
-    _who_tail = answered_tail(_answered, args.agent)
-
-    _all_substituted = bool(_answered) and all(a["substituted"] for a in _answered)
-    if _all_substituted and getattr(args, "agent_explicit", False):
-        if getattr(args, "any_agent", False):
-            print(f"  --any-agent: proceeding -- all {len(jobs)} jobs were "
-                  f"answered by a substituted backend, not {args.agent}, "
-                  f"which you named explicitly (ANY-AGENT)\n")
-        else:
-            _who = sorted({a.get("answered_by") or a.get("answered_rung")
-                           or "an unnamed agent"
-                           for a in _answered})
-            print(f"\nALL {len(jobs)} jobs were answered by a substituted "
-                  f"backend ({', '.join(_who)}), not {args.agent} -- which "
-                  f"you named explicitly. Nothing was answered by "
-                  f"{args.agent}, so nothing is written.\nRerun with "
-                  f"--any-agent to accept these answers anyway, or fix why "
-                  f"{args.agent} did not answer and rerun -- the paid-for "
-                  f"answers above are banked in {journal_path(out_path).name} "
-                  f"and are not spent again.", file=sys.stderr)
-            print(_exit_line(6))
-            return 6
 
     results.sort(key=lambda r: (order.index(r["specialist"]), r["lo"], r["unit"]))
     failed = [r for r in results if r.get("error")]
@@ -6554,25 +6498,6 @@ def cmd_run(args, launcher=None):
           f"edits applied, {len(gates)} refused by the gates"
           + (f", {len(owned)} went to the line's owner" if owned else "")
           + f" → {out_path}\n")
-    _subst = [r for r in results if r.get("substituted")]
-    if _subst and getattr(args, "agent_explicit", True):
-        _cap = top(3)
-        _who = [f"{r['specialist']} · {r['unit']}" for r in _subst]
-        _more = f" and {len(_who) - _cap} more" if len(_who) > _cap else ""
-        print(f"  {len(_subst)} of {len(jobs)} job"
-              f"{'' if len(_subst) == 1 else 's'} answered by a substituted "
-              f"backend, not {args.agent} ({', '.join(_who[:_cap])}{_more})\n")
-        _causes = Counter()
-        for r in _subst:
-            for rung, cause in _subst_rung_causes(r.get("subst_msgs", [])):
-                _causes[(rung, cause)] += 1
-        if _causes:
-            _parts = [f"{rung} {n} fail ({cause})"
-                      for (rung, cause), n in sorted(_causes.items())]
-            print(f"    {', '.join(_parts)}\n")
-        if len(_subst) == len(jobs):
-            print(f"  ALL {len(jobs)} JOBS SUBSTITUTED -- nothing here was "
-                  f"answered by {args.agent}\n")
     _sum = len(applied) + len(gates) + len(owned)
     if _sum != proposed:
         _why = ("an edit landed on more than one line" if _sum > proposed
@@ -6918,8 +6843,6 @@ def cmd_run(args, launcher=None):
                            if r.get("error") == budget.sigterm_reason())))
         print(tail_note(time.monotonic() - _tail0, args.timeout,
                         args.no_budget, sent=_sent))
-        if _who_tail:
-            print(_who_tail)
         if _terminated:
             print(_exit_line(143))
             return 143
@@ -6973,8 +6896,6 @@ def cmd_run(args, launcher=None):
                   f"bypassed.")
     print(tail_note(time.monotonic() - _tail0, args.timeout, args.no_budget,
                     sent=_sent))
-    if _who_tail:
-        print(_who_tail)
     if _terminated:
         print(_exit_line(143))
         return 143
@@ -7023,8 +6944,108 @@ def genre_evidence(g):
     return f" ({g['genre']} {mine} of {total} body lines{tail})"
 
 
+DOMAIN_PROFILES = ("clinical", "legal", "general")
+DOMAIN_LISTS = ("domain_jargon", "id_families", "units", "safe_acronyms",
+                "tooling_names", "corporate_headers")
+# Measured: samples 36.6-87/1k, 6-21 terms; repo docs 34.3/1k at 1 term, 3.0 at 4+
+DOMAIN_RATE = 10.0
+DOMAIN_TERMS = 4
+LANG_STOPWORDS = {"es": frozenset(
+    "de la que el los del se las por una para con su al lo como más pero sus "
+    "le ya este esta entre cuando muy sin sobre también hay es son está".split())}
+LANG_SHARE = 0.10  # measured: Spanish sample 0.371; 183 English docs max 0.004
+MODULES = None
+
+
+def _own_entries(data, key):
+    """A profile's entries for `key` that the default build does not carry."""
+    given = data.get(key, [])
+    given = given.get("add", []) if isinstance(given, dict) else given
+    return [e for e in given if e not in DEFAULT_VOCAB.get(key, [])]
+
+
+def domain_rates(text):
+    """{profile: (hits per 1000 words, distinct entries hit)} for each domain.
+
+    A hit is a match of one of the profile's own entries -- jargon, an id
+    family, a unit after a number, an acronym, a tool name, a heading.
+    """
+    words = max(word_count(text), 1)
+    out = {}
+    for name in DOMAIN_PROFILES:
+        data = json.loads((PROFILE_DIR / f"{name}.json").read_text(
+            encoding="utf-8"))
+        hits = terms = 0
+        for key in DOMAIN_LISTS:
+            for e in _own_entries(data, key):
+                if key == "units":
+                    rx = re.compile(rf"\d\s*(?:{e})(?![A-Za-z])")
+                elif key == "safe_acronyms":
+                    rx = re.compile(rf"\b{re.escape(e)}\b")
+                elif key == "corporate_headers":
+                    rx = re.compile(rf"^#+\s*(?:{e})\s*$", re.I | re.M)
+                else:
+                    rx = re.compile(rf"(?<![\w-])(?:{e})(?![\w-])",
+                                    0 if key == "id_families" else re.I)
+                n = len(rx.findall(text))
+                hits += n
+                terms += bool(n)
+        out[name] = (round(1000 * hits / words, 1), terms)
+    return out
+
+
+def lang_shares(text):
+    """{code: share of the words that are that language's stopwords}."""
+    words = re.findall(r"[^\W\d_]+", text.lower())
+    return {code: round(sum(w in stop for w in words) / max(len(words), 1), 3)
+            for code, stop in LANG_STOPWORDS.items()}
+
+
+def detect_modules(text):
+    """[(profile, reason)]: the strongest domain that clears both bars, then
+    every language that clears its share. Domains replace each other's lists,
+    so at most one loads; a language only adds words, so it stacks."""
+    found = []
+    rates = domain_rates(text)
+    hit = [(r, n) for n, (r, t) in rates.items()
+           if r >= DOMAIN_RATE and t >= DOMAIN_TERMS]
+    if hit:
+        r, n = max(hit)
+        found.append((n, f"{r} hits/1k words"))
+    for code, share in lang_shares(text).items():
+        if share >= LANG_SHARE:
+            found.append((code, f"{round(100 * share)}% stopwords"))
+    return found
+
+
+def load_modules(text, args):
+    """Load every module the document's own text selects, once per process.
+
+    A profile named in the project file is an override and replaces detection.
+    """
+    global MODULES
+    if MODULES is not None:
+        return MODULES
+    named = getattr(args, "profile", None)
+    if named:
+        MODULES = [f"{PROFILE_NAME} (named in {PROJECT_FILE})"]
+        return MODULES
+    MODULES = []
+    for name, why in detect_modules(text):
+        load_profile(name)
+        MODULES.append(f"{name} ({why})")
+    return MODULES
+
+
+def modules_line(loaded):
+    """The one line `plan` and `run` print: every module and why it is on."""
+    names = list(MODULES or []) + ([loaded] if loaded else [])
+    return "modules: " + (", ".join(names) if names else "none detected")
+
+
 def select_genre(lines, headings, args):
     """Detect the genre and load its profile, unless the project named one."""
+    load_modules("\n".join(lines), args)
     genre = detect_genre(lines, headings)
     mix = genre_mix(lines, headings)
     total = sum(mix.values())
@@ -7360,6 +7381,7 @@ def cmd_plan(args):
             "genre": genre,
             "genre_mix": dict(genre_mix(_gl, headings)),
             "profile": loaded or PROFILE_NAME,
+            "modules": modules_line(loaded)[len("modules: "):],
             "fact_counts": {k: len(v) for k, v in sorted(inv.items())},
         },
         "chunks": [],
@@ -7417,6 +7439,7 @@ def cmd_plan(args):
           f"{count(len(payload['chunks']), 'chunk')}"
           f"  ·  read as {g['genre']}{genre_evidence(g)}"
           + (f", profile {g['profile']}" if g['profile'] != "default" else ""))
+    print(modules_line(loaded))
     _full = bool(getattr(args, "full", False))
     _cfg = config_note(getattr(args, "project", None),
                        getattr(args, "searched", None))
@@ -7674,8 +7697,6 @@ _EXIT_MEANINGS = {
     4: "forced -- a gate was overridden and the write landed anyway",
     5: "not checked -- the reviewer could not run; the document was not "
        "judged",
-    6: "all substituted -- every job answered by a backend other than the "
-       "--agent you named; nothing was written. --any-agent accepts it",
     143: "terminated by SIGTERM -- the report above covers what had landed",
 }
 
@@ -8655,6 +8676,7 @@ def _cmd_verify(args):
     n_prose, n_heads, n_tables, n_quotes = mask(new, ep.name)
     _rec_genre = record.get("genre")
     if _rec_genre:
+        load_modules(orig, args)
         if apply_genre(_rec_genre, args):
             print(f"reading {run_record_path(ep).name}: read as "
                   f"{_rec_genre}, the genre the run scored under.\n")
@@ -16470,6 +16492,45 @@ def cmd_selftest(_):
     for _gp in PROFILE_DIR.glob("genre-*.json"):
         assert _gp.stem[len("genre-"):] in GENRES, \
             f"{_gp.name} is named for no genre this build detects"
+    _detect_cases = {
+        "clinical": ("Patients took 40 mg PO daily and pressure fell 12 mmHg. "
+                     "Each AE and SAE went into the eCRF for the PI.",
+                     "Tickets SRE-4118 and SRE-4120 track the PD alert. The "
+                     "job reads the queue and writes one line per event."),
+        "legal": ("Acme LLC (hereinafter the Supplier) shall sign the DPA in "
+                  "Schedule 1 under the GDPR, notwithstanding the foregoing "
+                  "and subject to Clause 4.",
+                  "The ADR says why. ADR-001, ADR-002 and ADR-003 each name "
+                  "one ADR owner and one ADR date."),
+        "general": ("ChatGPT and Copilot drafted the tests, and the model "
+                    "suggested a refactor tracked in OPS-12 and #231.",
+                    "OPS-12, OPS-13, OPS-14 and OPS-15 are closed; the worker "
+                    "reads the queue."),
+        "es": ("El despliegue de la versión se hace con el comando que está "
+               "en la guía, y los pasos son los mismos para todos.",
+               "The worker reads the queue and writes one line per event, "
+               "and the canteen menu on the wall still offers the soup de la "
+               "casa to anyone who asks the cook before noon."),
+    }
+    for _mod, (_yes, _no) in _detect_cases.items():
+        assert [n for n, _w in detect_modules(_yes)] == [_mod], \
+            (_mod, detect_modules(_yes), domain_rates(_yes))
+        assert _mod not in [n for n, _w in detect_modules(_no)], \
+            (_mod, detect_modules(_no), domain_rates(_no))
+    _ma = argparse.Namespace(profile=None)
+    assert load_modules(_detect_cases["legal"][0], _ma) == \
+        [f"legal ({detect_modules(_detect_cases['legal'][0])[0][1]})"]
+    assert PROFILE_NAME == "legal"
+    assert modules_line("genre-checklist").startswith("modules: legal (")
+    assert modules_line("genre-checklist").endswith(", genre-checklist")
+    reset_profile()
+    assert MODULES is None and modules_line(None) == "modules: none detected"
+    _ma.profile = "clinical"
+    load_profile("clinical")
+    assert load_modules(_detect_cases["legal"][0], _ma) == \
+        [f"clinical (named in {PROJECT_FILE})"]
+    assert PROFILE_NAME == "clinical", "an override must not load a module"
+    reset_profile()
     for _off in ("genre-roadmap", "genre-checklist", "genre-log"):
         load_profile(str(PROFILE_DIR / f"{_off}.json"))
         assert "planning" not in SPECIALISTS, _off
@@ -17393,12 +17454,9 @@ def build_parser():
                         "installed ones are tried in turn, silently unless "
                         "you named the agent")
     r.add_argument("--any-agent", action="store_true",
-                   help="proceed even when EVERY job was answered "
-                        "by a fallback agent, not the --agent you "
-                        "named explicitly. Without it such a run stops "
-                        "before writing output (exit 6). Has no effect "
-                        "when --agent was left at its default, or "
-                        "when only some jobs were substituted.")
+                   help="accepted and ignored: a run whose jobs were all "
+                        "answered by a fallback agent writes its output "
+                        "like any other run.")
     r.add_argument("--timeout", type=positive_int, default=RUN_BUDGET,
                    help=f"seconds for the whole run (default {RUN_BUDGET}); "
                         f"jobs still unsent when it runs out resume on a rerun")

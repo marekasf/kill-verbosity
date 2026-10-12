@@ -223,27 +223,6 @@ def cross_writers(target: Path | str) -> list[str]:
     return []
 
 
-def answered_tail(answered: list[dict], agent: str | None) -> str | None:
-    """One line naming who really answered, when most jobs were substituted."""
-    subst = [a for a in answered if a.get("substituted")]
-    if not answered or 2 * len(subst) <= len(answered):
-        return None
-    who: dict[str, int] = {}
-    for a in subst:
-        via, rung = a.get("answered_by"), a.get("answered_rung")
-        if a.get("answered_by_state") == ANSWERED_READ and via:
-            name = via
-        elif rung and rung != agent:
-            name = f"{rung} (model not named)"
-        else:
-            name = "an unnamed agent"
-        who[name] = who.get(name, 0) + 1
-    names = ", ".join(f"{w} ({n})" for w, n in
-                      sorted(who.items(), key=lambda i: -i[1]))
-    return (f"answered by: {names} — {len(subst)} of {len(answered)} jobs "
-            f"did not run on {agent}, the agent this run asked for")
-
-
 def journal_key(prompt: str) -> str:
     return hashlib.sha256(prompt.encode("utf-8", "replace")).hexdigest()[:16]
 

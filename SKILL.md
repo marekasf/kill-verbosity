@@ -83,8 +83,7 @@ CLIs are tried in turn, in the order `claude`, `codex`, `agy`, `delegate`,
 skipping the one already tried and any that is not on PATH. They share the
 job's remaining clock, so a fallback never overshoots the budget. A fall is
 normal and prints nothing: the `.kvrun` record names the agent that answered
-each job and marks a substituted one, and the `answered by:` line names who
-answered. Only installation is checked, not quota
+each job and marks a substituted one. Only installation is checked, not quota
 or login, so a signed-out CLI is tried and fails like any other.
 
 ### The tool does the work, not you
@@ -183,14 +182,6 @@ outside the writer's own family was either not installed or failed (non-zero
 exit, timeout, empty answer), and the reason is recorded in `.kvcross`. It is
 never 1, because a reviewer that never spoke found no damage.
 
-`run` adds **6, all substituted**: you named `--agent` explicitly and every job
-was answered by a fallback instead. Leaving `--agent` at its default
-never triggers it, and neither does a partial substitution, which stays a
-warning. Nothing is written on 6, but nothing paid for is lost: the answers
-are already banked in the `.kvjournal`. Fix why your agent did not answer and
-rerun the same command, or pass `--any-agent` to accept the substituted
-answers.
-
 Exit 2 means the input or the arguments are wrong, and nothing ran: the file
 is not Markdown, a code fence or the front matter never closes, the text still
 carries a file viewer's line numbers, an agent name is unknown, or a marker is
@@ -224,7 +215,7 @@ Read what it printed, in this order:
 | Flag | Use |
 |---|---|
 | `--agent NAME\|'COMMAND'` | `run` only. `claude`, `codex`, `agy`, `delegate`, or any command that reads the prompt on stdin and prints the answer. Default: `KV_AGENT`, else the first installed of claude, codex, agy, delegate. The installed ones are tried when it fails |
-| `--any-agent` | `run` only. Without it, a run whose jobs were ALL answered by a fallback rather than an explicitly named `--agent` stops before writing (exit 6). This flag accepts those answers and proceeds |
+| `--any-agent` | `run` only. Accepted and ignored: a run whose jobs were all answered by a fallback writes its output like any other run |
 | `--dry-run` | `run`: print the job matrix and whether the agent is installed (`installed, not probed` or `NOT INSTALLED`), and stop. Run this first. `accept`: run every check and copy nothing |
 | `--chat` | `run`, `plan`, `verify`, `accept`. The text is a chat reply or a review comment, not a document |
 | `--no-agents` | `run` only. Everything except the specialists: the gates, the merge, `verify`, and a run record saying no specialist ran. The output is the input. It exercises the gates and the `accept` refusals on your own tree without calling an agent |
@@ -499,6 +490,13 @@ writing English and Polish.
 Release checklist  —  312 words, 3 chunks  ·  read as checklist, profile genre-checklist
 ```
 
+`plan` and `run` also print a `modules:` line naming every profile module they
+loaded from the document's own text. A domain profile (`clinical`, `legal`,
+`general`) loads when its own vocabulary appears at least 10 times per 1000
+words, across at least 4 distinct entries; the strongest one loads. `es` loads
+when at least 10% of the words are Spanish stopwords, and stacks with a domain
+profile and a genre profile. Nothing needs to be switched on.
+
 Six kinds are detected: checklist, log, prose, reference, roadmap, and transcript.
 The kind decides which rules apply. A reference document is not asked for a
 summary or for a conclusion at the end of each section, because a glossary
@@ -508,8 +506,9 @@ because a document whose sections are phases and milestones is made of the
 shape that specialist deletes. Rule sentences are protected on every document,
 whatever its kind, by the `rule word` bank below.
 
-Anything else (a domain, another language, a house that numbers its findings
-differently) is a profile, named in `.killverbosity.json`:
+A house that numbers its findings differently, or a document the detection
+misreads, can name a profile in `.killverbosity.json`. A named profile is an
+override and replaces the detection:
 
 ```json
 {"profile": "clinical"}      // profiles/clinical.json

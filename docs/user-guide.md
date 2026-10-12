@@ -119,9 +119,8 @@ each job and marks a substituted one. Only installation
 is checked, not quota or sign-in, so a signed-out CLI is tried and fails like
 any other.
 
-If you named `--agent` yourself and every job was answered by a fallback, the
-run stops before writing (exit 6). Fix the agent and rerun, or pass
-`--any-agent` to keep the substituted answers.
+A run whose jobs were all answered by a fallback writes its output like any
+other. `--any-agent` is accepted and ignored.
 
 ## What each command answers
 
@@ -209,8 +208,7 @@ to judge against.
 ## Exit codes
 
 0 pass, 3 review, 1 broken, 2 bad input. Then three codes that only one command
-uses: from `accept`, **4 forced**; from `crosscheck`, **5 not checked**; from
-`run`, **6 all substituted**.
+uses: from `accept`, **4 forced**; from `crosscheck`, **5 not checked**.
 
 3 has **two** verdict words. `REVIEW` is the ordinary one. `NOTHING IN PLAY`
 means a `freeze` matched every editable line, so no specialist got a span and
@@ -230,13 +228,6 @@ past.
 writer's family was missing or failed. It is not 1. With no review, nothing was
 found broken. The last stderr line names every candidate tried, and the `.kvrun` record
 lists the candidates dispatched.
-
-6 means a fallback answered every job in `run` instead of the `--agent` you
-named. An unset `--agent` never triggers it, and a partial substitution stays a
-warning. Nothing is written, because writing would record a vendor swap you
-never agreed to as accepted. It is not 1: no gate found damage. The answers are
-saved in `FILE.kv.EXT.kvjournal`, so `--any-agent` or a rerun after fixing the
-agent reuses them without paying twice.
 
 Read exit codes off an unpiped run. A pipe gives you the last command's status,
 not the tool's: `verify orig.md new.md | tail` prints REVIEW and exits 0.

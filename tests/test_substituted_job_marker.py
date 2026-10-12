@@ -1,6 +1,6 @@
-"""`run --agent codex`: every job was answered by another agent, and every job
-line in the listing still printed the ok mark, so the substitution was real
-but invisible.
+"""A backend fallback is normal behaviour and kill-verbosity prints nothing
+about it. A substituted job that answered prints exactly like an ok job, and
+`.kvrun` still records the substitution.
 """
 
 from __future__ import annotations
@@ -35,22 +35,22 @@ def _run(kv, monkeypatch, tmp_path, capsys, launcher, *extra_argv):
     return said.out, said.err
 
 
-def test_a_substituted_success_is_not_marked_ok(kv, monkeypatch, tmp_path,
-                                                capsys):
+def test_a_substituted_success_prints_like_an_ok_job(kv, monkeypatch,
+                                                     tmp_path, capsys):
     def launcher(prompt, agent, timeout, say=None, avoid=()):
         if say:
             say("codex failed, answered by claude instead — usage limit reached")
         return json.dumps({"edits": [], "notes": []}), None
 
-    out, err = _run(kv, monkeypatch, tmp_path, capsys, launcher, "--any-agent")
+    out, err = _run(kv, monkeypatch, tmp_path, capsys, launcher)
 
-    assert not re.search(r"\[\s*\d+/\s*\d+\]\s+·", err), (
-        f"a substituted job's line still prints the ok mark -- err:\n{err}")
-    assert re.search(r"\[\s*\d+/\s*\d+\]\s+~", err), (
-        f"no job line carries the distinct substituted mark `~` -- err:\n{err}")
-    assert re.search(r"\bjobs? answered by a substituted backend, not codex",
-                     out), (
-        f"the run summary never counts the substituted jobs -- out:\n{out}")
+    assert re.search(r"\[\s*\d+/\s*\d+\]\s+·", err), err
+    assert not re.search(r"\[\s*\d+/\s*\d+\]\s+~", err), err
+    for text in (out, err):
+        assert "SUBSTITUTED" not in text, text
+        assert "substituted backend" not in text, text
+    rec = json.loads(kv.run_record_path(tmp_path / "out.md").read_text())
+    assert rec["substituted_jobs"] >= 1, rec
 
 
 def test_an_unsubstituted_success_still_reads_as_ok(kv, monkeypatch, tmp_path,

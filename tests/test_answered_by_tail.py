@@ -1,5 +1,5 @@
-"""A run whose jobs were mostly substituted names, on its last
-lines, the model that really answered.
+"""A mostly substituted run prints no `answered by:` line; who answered is
+recorded in `.kvrun` (`answered_by`, `substituted_jobs`).
 """
 
 from __future__ import annotations
@@ -48,32 +48,13 @@ def _launcher(substitute):
     return launcher
 
 
-def test_the_last_lines_name_the_model_that_answered(kv, monkeypatch,
-                                                     tmp_path, capsys):
-    out = _run(kv, monkeypatch, tmp_path, capsys, _launcher(lambda n: True),
-              "--any-agent")
-    lines = out.rstrip().splitlines()
-    assert lines[-1].startswith("exit "), lines[-3:]
-    assert lines[-2].startswith(f"answered by: {GOOGLE} ("), lines[-3:]
-    assert "did not run on codex" in lines[-2], lines[-2]
-
-
-def test_a_mostly_unsubstituted_run_prints_no_such_line(kv, monkeypatch,
-                                                       tmp_path, capsys):
-    out = _run(kv, monkeypatch, tmp_path, capsys, _launcher(lambda n: n == 1))
+def test_a_mostly_substituted_run_prints_no_answered_by_line(
+        kv, monkeypatch, tmp_path, capsys):
+    out = _run(kv, monkeypatch, tmp_path, capsys, _launcher(lambda n: True))
     assert "answered by:" not in out, out[-600:]
-    assert "answered by a substituted backend" in out, out[-600:]
-
-
-def test_the_counts_are_per_model(kv):
-    read = kv.ANSWERED_READ
-    answered = ([{"substituted": True, "answered_by": GOOGLE,
-                  "answered_by_state": read}] * 3
-                + [{"substituted": True, "answered_by": "claude",
-                    "answered_by_state": read}]
-                + [{"substituted": False, "answered_by": "codex",
-                    "answered_by_state": read}])
-    line = kv.answered_tail(answered, "codex")
-    assert line.startswith(f"answered by: {GOOGLE} (3), claude (1)"), line
-    assert "4 of 5 jobs" in line, line
-    assert kv.answered_tail(answered[3:], "codex") is None
+    assert "did not run on codex" not in out, out[-600:]
+    assert out.rstrip().splitlines()[-1].startswith("exit "), out[-300:]
+    rec = json.loads(kv.run_record_path(tmp_path / "out.md").read_text())
+    assert rec["substituted_jobs"] >= 1, rec
+    assert any(j.get("answered_by") == GOOGLE
+               for j in rec["job_spans"]), rec["job_spans"]
