@@ -15182,16 +15182,12 @@ def cmd_selftest(_):
             f"the {_ag} path no longer feeds the prompt over stdin"
         assert _kw.get("timeout"), f"the {_ag} path spawns with no timeout"
 
-    _real_platform = sys.platform
-    try:
-        sys.platform = "win32"
-        _argv_w, _err_w = _cli_argv("no-such-agent-cli-here")
-        assert _argv_w is None and "no-such-agent-cli-here" in _err_w, \
-            (_argv_w, _err_w)
-        sys.platform = "linux"
-        assert _cli_argv("codex") == (["codex"], None)
-    finally:
-        sys.platform = _real_platform
+    # The platform is passed, never faked: a faked sys.platform reaches the
+    # real shutil.which, which calls _winapi (None off Windows, Python 3.13).
+    _argv_w, _err_w = _cli_argv("no-such-agent-cli-here", platform="win32")
+    assert _argv_w is None and "no-such-agent-cli-here" in _err_w, \
+        (_argv_w, _err_w)
+    assert _cli_argv("codex", platform="linux") == (["codex"], None)
 
     _saved_io = _INSTALLED_OVERRIDE
     try:
