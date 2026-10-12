@@ -14,7 +14,7 @@ DOC = "# Notes\n\nThe importer reads from the staging bucket.\n\n" \
 
 def test_a_fresh_run_says_it_created_the_baseline(tmp_path):
     src = tmp_path / "note.md"
-    src.write_text(DOC)
+    src.write_text(DOC, encoding="utf-8")
     base = tmp_path / "note.orig.md"
     assert not base.exists()
 
@@ -27,14 +27,14 @@ def test_a_fresh_run_says_it_created_the_baseline(tmp_path):
 
 def test_a_rerun_over_an_existing_baseline_says_it_found_it(tmp_path):
     src = tmp_path / "note.md"
-    src.write_text(DOC)
+    src.write_text(DOC, encoding="utf-8")
     base = tmp_path / "note.orig.md"
     OLD_TEXT = "# Notes\n\nAn older baseline that predates this run.\n"
-    base.write_text(OLD_TEXT)
+    base.write_text(OLD_TEXT, encoding="utf-8")
 
     r = run_tool("run", src, "--no-agents")
 
     assert f"baseline: {base.name} (existing)" in r.stderr, r.stderr
     assert f"baseline: {base.name} (created)" not in r.stderr, r.stderr
-    assert base.read_text() == OLD_TEXT, (
-        "an existing baseline must not be overwritten -- " + base.read_text())
+    assert base.read_text(encoding="utf-8") == OLD_TEXT, (
+        "an existing baseline must not be overwritten -- " + base.read_text(encoding="utf-8"))

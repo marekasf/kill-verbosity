@@ -81,7 +81,7 @@ def _canned(kv, monkeypatch, tmp_path, garbage_until_avoided, bad_for=None,
             transport_fail=None, three_arg=False):
     """The pipeline with a launcher that answers badly on the head rung."""
     src = tmp_path / "doc.md"
-    src.write_text(DOC + "\n")
+    src.write_text(DOC + "\n", encoding="utf-8")
     calls = []
     real_prompt = kv.job_prompt
 

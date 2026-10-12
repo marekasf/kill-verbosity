@@ -15,7 +15,7 @@ def nothing_installed(kv, monkeypatch):
 def test_custom_agent_answers_from_stdout(kv, tmp_path, nothing_installed):
     script = tmp_path / "agent.py"
     script.write_text("import sys\nsys.stdin.read()\n"
-                      "print('{\"edits\": [], \"notes\": []}')\n")
+                      "print('{\"edits\": [], \"notes\": []}')\n", encoding="utf-8")
     quote = str if sys.platform == "win32" else shlex.quote  # non-posix split keeps quotes
     agent = kv.agent_name(f"{quote(sys.executable)} {quote(str(script))}")
     assert kv.is_custom_agent(agent) and kv.agent_installed(agent)

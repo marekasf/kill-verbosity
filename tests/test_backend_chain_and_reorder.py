@@ -201,7 +201,7 @@ Nobody has yet decided who owns the second stage, and that needs an answer befor
 
 def test_plan_and_run_both_take_the_flag(tmp_path):
     f = tmp_path / "d.md"
-    f.write_text(DOC)
+    f.write_text(DOC, encoding="utf-8")
     r = run_tool("plan", f, "--no-reorder")
     assert r.returncode == 0, r.stderr + r.stdout
     assert "usage" not in r.stderr.lower(), r.stderr
@@ -213,7 +213,7 @@ def test_plan_and_run_both_take_the_flag(tmp_path):
 
 def test_the_order_job_is_not_scheduled_under_the_flag(tmp_path):
     f = tmp_path / "d.md"
-    f.write_text(DOC)
+    f.write_text(DOC, encoding="utf-8")
     out = tmp_path / "o.md"
     on = run_tool("run", f, "--dry-run", "-o", str(out))
     off = run_tool("run", f, "--no-reorder", "--dry-run", "-o", str(out))
@@ -249,7 +249,7 @@ def test_a_move_that_lands_is_named_with_both_line_numbers(kv, monkeypatch,
     from conftest import run_canned
 
     f = tmp_path / "d.md"
-    f.write_text(DOC)
+    f.write_text(DOC, encoding="utf-8")
     out = tmp_path / "o.md"
     lines = DOC.split("\n")
     hist = next(i for i, l in enumerate(lines, 1) if l == "## History")
@@ -278,7 +278,7 @@ def test_a_move_that_lands_is_named_with_both_line_numbers(kv, monkeypatch,
     _row = next(l for l in said.split("\n") if f"L{openq} → L" in l)
     _to = int(re.search(rf"L{openq} → L(\d+)", _row).group(1))
     assert _to != openq, _row
-    assert out.read_text().split("\n")[_to - 1] == "## Open questions", _row
+    assert out.read_text(encoding="utf-8").split("\n")[_to - 1] == "## Open questions", _row
 
 
 
@@ -289,9 +289,9 @@ def _exe(cmd):
 def _cc_argv(kv, tmp_path, monkeypatch, backend):
     """The argv `crosscheck` would run, with nothing actually spawned."""
     orig = tmp_path / "a.md"
-    orig.write_text("# T\n\nA sentence that says a thing.\n")
+    orig.write_text("# T\n\nA sentence that says a thing.\n", encoding="utf-8")
     edited = tmp_path / "b.md"
-    edited.write_text("# T\n\nA sentence saying a thing.\n")
+    edited.write_text("# T\n\nA sentence saying a thing.\n", encoding="utf-8")
     seen = {}
 
     class _R:
@@ -346,7 +346,7 @@ _USAGE_DOC = "\n".join(
 def _usage_run(kv, monkeypatch, tmp_path, reply):
     """Drive a whole `run` with one canned launcher. Returns the ask count."""
     src = tmp_path / "doc.md"
-    src.write_text(_USAGE_DOC + "\n")
+    src.write_text(_USAGE_DOC + "\n", encoding="utf-8")
     calls = []
 
     def agent(prompt, *_a):

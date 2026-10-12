@@ -20,13 +20,13 @@ ROWS_ONLY = [r"^\s*\|"]
 def _tree(tmp_path, lines, doc=DOC, name="note.md"):
     (tmp_path / ".killverbosity.json").write_text(json.dumps({"freeze": {
         "lines": lines,
-        "reason": "rows are split on | and must keep exactly 6 cells"}}))
-    (tmp_path / name).write_text(doc)
+        "reason": "rows are split on | and must keep exactly 6 cells"}}), encoding="utf-8")
+    (tmp_path / name).write_text(doc, encoding="utf-8")
     return tmp_path / name
 
 
 def _record(out):
-    return json.loads(run_record_path(out).read_text())
+    return json.loads(run_record_path(out).read_text(encoding="utf-8"))
 
 
 
@@ -50,7 +50,7 @@ def test_a_partly_frozen_run_still_passes(tmp_path):
 
 def test_a_file_with_no_declaration_at_all_is_untouched(tmp_path):
     """The second control: the unfrozen run must be what it was."""
-    (tmp_path / "note.md").write_text(DOC)
+    (tmp_path / "note.md").write_text(DOC, encoding="utf-8")
     r = run_tool("run", tmp_path / "note.md", "--no-agents",
                  "-o", tmp_path / "out.md")
     assert "NOTHING WAS IN PLAY" not in r.stdout, r.stdout
@@ -61,7 +61,7 @@ def test_verify_alone_says_it_too(tmp_path):
     """The derived arm, which has no record to read."""
     orig = _tree(tmp_path, ALL)
     edited = tmp_path / "note.kv.md"
-    edited.write_text(DOC)
+    edited.write_text(DOC, encoding="utf-8")
     r = run_tool("verify", orig, edited)
     assert r.returncode == 3, (r.returncode, r.stdout)
     assert "NOTHING IN PLAY" in r.stdout, r.stdout
@@ -75,7 +75,7 @@ def test_a_record_from_a_build_that_did_not_count_falls_back(tmp_path):
 
     orig = _tree(tmp_path, ALL)
     out = tmp_path / "note.kv.md"
-    out.write_text(DOC)
+    out.write_text(DOC, encoding="utf-8")
     write_run_record(out, agent="codex", incomplete=[])
     r = run_tool("verify", orig, out)
     assert r.returncode == 3, (r.returncode, r.stdout)
@@ -114,7 +114,7 @@ def test_nothing_in_play_does_not_shadow_a_real_failure(tmp_path):
     orig = _tree(tmp_path, ALL)
     edited = tmp_path / "note.kv.md"
     edited.write_text(DOC.replace(
-        ROW, "| C1 | complete | 2026-09-01 | owner | ref | note |"))
+        ROW, "| C1 | complete | 2026-09-01 | owner | ref | note |"), encoding="utf-8")
     r = run_tool("verify", orig, edited)
     assert r.returncode == 1, (r.returncode, r.stdout)
     assert "FROZEN LINES CHANGED" in r.stdout, r.stdout
@@ -129,7 +129,7 @@ def test_accept_still_takes_a_fully_frozen_run(tmp_path):
     run_tool("run", doc, "--no-agents", "-o", out)
     r = run_tool("accept", doc, out, force=True)
     assert "verify says something broke" not in r.stdout + r.stderr, r.stdout
-    assert doc.read_text() == DOC, "accept refused a run it should have taken"
+    assert doc.read_text(encoding="utf-8") == DOC, "accept refused a run it should have taken"
 
 
 
@@ -146,7 +146,7 @@ def test_the_record_counts_the_frozen_lines(tmp_path):
 
 def test_the_record_writes_a_zero_rather_than_omitting_it(tmp_path):
     """A count is not a partition."""
-    (tmp_path / "note.md").write_text(DOC)
+    (tmp_path / "note.md").write_text(DOC, encoding="utf-8")
     out = tmp_path / "out.md"
     run_tool("run", tmp_path / "note.md", "--no-agents", "-o", out)
     rec = _record(out)
@@ -164,14 +164,14 @@ def test_verify_reads_the_records_numbers_over_its_own(tmp_path):
     run_tool("run", doc, "--no-agents", "-o", out)
     rec = _record(out)
     rec["editable_unfrozen"] = 4321
-    run_record_path(out).write_text(json.dumps(rec))
+    run_record_path(out).write_text(json.dumps(rec), encoding="utf-8")
     r = run_tool("verify", doc, out)
     assert "4321 line(s) a specialist" in r.stdout, r.stdout
 
 
 
 def test_the_record_names_the_input_digest_at_both_ends(tmp_path):
-    (tmp_path / "note.md").write_text(DOC)
+    (tmp_path / "note.md").write_text(DOC, encoding="utf-8")
     out = tmp_path / "out.md"
     r = run_tool("run", tmp_path / "note.md", "--no-agents", "-o", out)
     rec = _record(out)
@@ -184,13 +184,13 @@ def test_a_write_to_the_input_mid_run_is_named(kv, monkeypatch, tmp_path,
                                                 capsys):
     """The reported state, reproduced rather than described."""
     doc = tmp_path / "note.md"
-    doc.write_text(DOC)
+    doc.write_text(DOC, encoding="utf-8")
     out = tmp_path / "out.md"
     drifted = DOC.replace("quite verbose.", "quite verbose. Added by someone "
                                             "else while this run was out.")
 
     def reply(_who, _lo, _hi):
-        doc.write_text(drifted)
+        doc.write_text(drifted, encoding="utf-8")
         return []
 
     run_canned(kv, monkeypatch, doc, out, reply)
@@ -210,11 +210,11 @@ def test_the_two_diffs_the_drift_notice_prints_actually_run(kv, monkeypatch,
                                                              capsys):
     """A remedy inside a message is on no executed path."""
     doc = tmp_path / "note.md"
-    doc.write_text(DOC)
+    doc.write_text(DOC, encoding="utf-8")
     out = tmp_path / "out.md"
 
     def reply(_who, _lo, _hi):
-        doc.write_text(DOC.replace("quite verbose.", "quite verbose. Added."))
+        doc.write_text(DOC.replace("quite verbose.", "quite verbose. Added."), encoding="utf-8")
         return []
 
     run_canned(kv, monkeypatch, doc, out, reply)
@@ -224,13 +224,13 @@ def test_the_two_diffs_the_drift_notice_prints_actually_run(kv, monkeypatch,
     assert len(cmds) == 2, said.err
     for c in cmds:
         rc = subprocess.run(c.split()[:3], cwd=tmp_path,
-                            capture_output=True, text=True).returncode
+                            capture_output=True, text=True, encoding="utf-8").returncode
         assert rc in (0, 1), (c, rc)
 
 
 def test_a_clean_run_prints_no_diff_advice(tmp_path):
     """The control for the case above, and it is the one that decides it."""
-    (tmp_path / "note.md").write_text(DOC)
+    (tmp_path / "note.md").write_text(DOC, encoding="utf-8")
     r = run_tool("run", tmp_path / "note.md", "--no-agents",
                  "-o", tmp_path / "out.md")
     assert "diff note.orig.md" not in r.stderr, r.stderr

@@ -7,8 +7,8 @@ from conftest import run_tool
 def _pair(tmp_path, before, after):
     o = tmp_path / "o.md"
     n = tmp_path / "n.md"
-    o.write_text(before)
-    n.write_text(after)
+    o.write_text(before, encoding="utf-8")
+    n.write_text(after, encoding="utf-8")
     return o, n
 
 
@@ -117,7 +117,7 @@ def test_an_excerpt_runs_past_an_abbreviation(tmp_path):
     """"A shape excerpt stops short on a sentence ending in `e.g.`." Fixed."""
     doc = tmp_path / "d.md"
     doc.write_text("# Handbook\n\nIt is worth noting that we ship daily, "
-                   "e.g. on Fridays, without a freeze.\n")
+                   "e.g. on Fridays, without a freeze.\n", encoding="utf-8")
 
     res = run_tool("plan", doc)
 
@@ -148,7 +148,7 @@ def test_two_identical_sentences_print_the_same_excerpt(tmp_path):
     doc = tmp_path / "d.md"
     doc.write_text("# Handbook\n\nIt is worth noting that the budget is "
                    "shared.\n\nSome other text sits here.\n\nIt is worth "
-                   "noting that the budget is shared.\n")
+                   "noting that the budget is shared.\n", encoding="utf-8")
 
     res = run_tool("plan", doc)
 

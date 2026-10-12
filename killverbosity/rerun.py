@@ -16,7 +16,7 @@ def verdict(out_path: Path, src: Path, text: str, banked: dict) -> str:
         return PROCEED
     if out_path.stat().st_mtime <= src.stat().st_mtime:
         return PROCEED
-    if out_path.read_text(errors="replace") == text:
+    if out_path.read_text(errors="replace", encoding="utf-8") == text:
         return PROCEED
     return RESUME if banked else REFUSE
 

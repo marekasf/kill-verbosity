@@ -58,7 +58,7 @@ def test_plan_reports_the_appendix_as_split_for_dispatch(tmp_path):
     from conftest import run_tool
 
     f = tmp_path / "appendix.md"
-    f.write_text(DOC)
+    f.write_text(DOC, encoding="utf-8")
     r = run_tool("plan", f)
     assert r.returncode == 0, (r.returncode, r.stdout)
     assert "split into" in r.stdout and "for dispatch" in r.stdout, r.stdout

@@ -24,7 +24,7 @@ def _buried_with_extra_structure_jobs(tmp_path):
     for i in range(8):
         parts += [f"## Section {i}", ""] + [FILLER, ""] * 4 + [DUP, ""]
     p = tmp_path / "buried.md"
-    p.write_text("\n".join(parts) + "\n")
+    p.write_text("\n".join(parts) + "\n", encoding="utf-8")
     return p
 
 

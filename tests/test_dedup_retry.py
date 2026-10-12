@@ -30,7 +30,7 @@ def doc(tmp_path):
     for i in range(20):
         out += [f"## Section {i + 1}", "", _para(i), ""]
     p = tmp_path / "queue.md"
-    p.write_text("\n".join(out))
+    p.write_text("\n".join(out), encoding="utf-8")
     return p
 
 
@@ -88,7 +88,7 @@ def test_the_repeated_summary_does_not_reach_the_file(kv, monkeypatch, doc,
     _run(kv, monkeypatch, doc, out)
     capsys.readouterr()
 
-    assert "## Summary" not in out.read_text()
+    assert "## Summary" not in out.read_text(encoding="utf-8")
 
 
 def test_verify_does_not_ask_for_the_summary_it_just_dropped(
@@ -113,7 +113,7 @@ def test_the_reason_reaches_a_standalone_verify(kv, monkeypatch, doc,
     _run(kv, monkeypatch, doc, out)
     capsys.readouterr()
 
-    rec = json.loads(kv.run_record_path(out).read_text())
+    rec = json.loads(kv.run_record_path(out).read_text(encoding="utf-8"))
     assert "repeats text already in the file" in (rec["refused_summary"] or "")
 
     monkeypatch.setattr(sys, "argv",
@@ -163,7 +163,7 @@ def test_a_refusal_that_was_not_the_summary_is_not_reported_as_one(
         pass
     printed = capsys.readouterr().out
 
-    assert json.loads(kv.run_record_path(out).read_text())["refused_summary"] \
+    assert json.loads(kv.run_record_path(out).read_text(encoding="utf-8"))["refused_summary"] \
         is None
     assert "REFUSED —" not in printed, printed[-1500:]
     assert "MISSING" in printed
@@ -218,6 +218,6 @@ def test_a_summary_only_the_retry_sent_still_counts_as_written(
         pass
     printed = capsys.readouterr().out
 
-    if "## Summary" in out.read_text():
+    if "## Summary" in out.read_text(encoding="utf-8"):
         pytest.skip("the retry's summary landed, so nothing was refused")
     assert "REFUSED — the run wrote one" in printed, printed[-2000:]

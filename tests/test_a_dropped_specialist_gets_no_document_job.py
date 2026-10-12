@@ -19,7 +19,7 @@ CHECKLIST = "# Release checklist\n\n## Milestones\n\n" + "".join(
 
 def test_a_checklist_document_does_not_crash_the_run(tmp_path):
     doc = tmp_path / "doc.md"
-    doc.write_text(CHECKLIST)
+    doc.write_text(CHECKLIST, encoding="utf-8")
 
     r = run_tool("run", doc, "--no-agents")
 
@@ -33,7 +33,7 @@ def test_the_genre_really_is_the_one_that_drops_the_specialist(tmp_path):
     reading this fixture as a checklist, the test above passes while
     exercising nothing."""
     doc = tmp_path / "doc.md"
-    doc.write_text(CHECKLIST)
+    doc.write_text(CHECKLIST, encoding="utf-8")
 
     r = run_tool("run", doc, "--no-agents")
 
@@ -50,7 +50,7 @@ def test_a_prose_document_still_gets_its_structure_jobs(tmp_path):
     doc.write_text("# Notes\n\n" + para * 12
                    + "## Second\n\n" + para * 12
                    + "## Third\n\n" + para * 12
-                   + "## Fourth\n\n" + para * 12)
+                   + "## Fourth\n\n" + para * 12, encoding="utf-8")
 
     r = run_tool("run", doc, "--dry-run")
 

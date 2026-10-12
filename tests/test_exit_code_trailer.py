@@ -41,8 +41,8 @@ ranging up to 100 megapixels.
 
 def _pair(tmp_path, orig, edit):
     o, n = tmp_path / "orig.md", tmp_path / "new.md"
-    o.write_text(orig)
-    n.write_text(edit)
+    o.write_text(orig, encoding="utf-8")
+    n.write_text(edit, encoding="utf-8")
     return o, n
 
 
@@ -69,7 +69,7 @@ def test_verify_broken_names_its_own_exit_code(tmp_path):
 
 def test_verify_bad_input_names_its_own_exit_code(tmp_path):
     o = tmp_path / "orig.md"
-    o.write_text(ORIG)
+    o.write_text(ORIG, encoding="utf-8")
     r = run_tool("verify", o, o)
     assert r.returncode == 2, (r.returncode, r.stdout, r.stderr)
     assert "exit 2:" in r.stdout, r.stdout
@@ -77,7 +77,7 @@ def test_verify_bad_input_names_its_own_exit_code(tmp_path):
 
 def test_run_names_its_own_exit_code(tmp_path):
     src = tmp_path / "note.md"
-    src.write_text(ORIG)
+    src.write_text(ORIG, encoding="utf-8")
     r = run_tool("run", src, "--no-agents")
     assert r.returncode in (0, 3), (r.returncode, r.stdout, r.stderr)
     assert f"exit {r.returncode}:" in r.stdout, r.stdout
@@ -85,7 +85,7 @@ def test_run_names_its_own_exit_code(tmp_path):
 
 def test_run_bad_input_names_its_own_exit_code(tmp_path):
     src = tmp_path / "note.py"
-    src.write_text("print(1)\n")
+    src.write_text("print(1)\n", encoding="utf-8")
     r = run_tool("run", src, "--no-agents")
     assert r.returncode == 2, (r.returncode, r.stdout, r.stderr)
     assert "exit 2:" in r.stdout, r.stdout
@@ -96,7 +96,7 @@ def _crosscheck(kv, monkeypatch, tmp_path, stdout):
     import subprocess
 
     target = tmp_path / "doc.md"
-    target.write_text("# Doc\n\nSome prose here.\n")
+    target.write_text("# Doc\n\nSome prose here.\n", encoding="utf-8")
 
     def fake_run(cmd, **kwargs):
         return subprocess.CompletedProcess(cmd, 0, stdout, "")

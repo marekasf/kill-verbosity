@@ -120,8 +120,8 @@ def _without_the_rule(text):
 
 def _verify(tmp_path, orig, edit):
     o, n = tmp_path / "orig.md", tmp_path / "new.md"
-    o.write_text(orig)
-    n.write_text(edit)
+    o.write_text(orig, encoding="utf-8")
+    n.write_text(edit, encoding="utf-8")
     return run_tool("verify", o, n)
 
 
@@ -189,12 +189,12 @@ def test_the_wrapped_quotation_is_collected_as_one_span(kv):
 
 def _mutant(tmp_path, old, new):
     """`_legacy.py` with one line replaced, loaded from a COPY in tmp_path."""
-    src = (REPO / "killverbosity" / "_legacy.py").read_text()
+    src = (REPO / "killverbosity" / "_legacy.py").read_text(encoding="utf-8")
     assert src.count(old) == 1, (
         "the mutation target is not in the source exactly once, so this "
         "mutant would test nothing: %r" % old)
     path = tmp_path / "mutant_legacy.py"
-    path.write_text(src.replace(old, new))
+    path.write_text(src.replace(old, new), encoding="utf-8")
 
     name = "kv_mutant_%s" % tmp_path.name
     spec = importlib.util.spec_from_file_location(name, path)

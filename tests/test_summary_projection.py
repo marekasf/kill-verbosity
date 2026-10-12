@@ -46,7 +46,7 @@ def test_the_run_survives_an_edit_that_breaks_the_projection(kv, monkeypatch,
     """End to end. The edit is refused, as it always was — what changed is
     that the run reaches the merge to refuse it."""
     src, out = tmp_path / "d.md", tmp_path / "o.md"
-    src.write_text(DOC)
+    src.write_text(DOC, encoding="utf-8")
 
     monkeypatch.setattr(kv, "call_agent", lambda *_: (json.dumps(
         {"edits": [{"line": 3, "op": "replace", "old": LINES[2],
@@ -58,13 +58,13 @@ def test_the_run_survives_an_edit_that_breaks_the_projection(kv, monkeypatch,
     kv.main()
 
     assert out.exists(), "the run wrote nothing"
-    assert out.read_text().count("```") == 2, out.read_text()
+    assert out.read_text(encoding="utf-8").count("```") == 2, out.read_text(encoding="utf-8")
 
 
 def test_the_input_s_own_broken_fence_is_still_refused(tmp_path):
     """The other boundary, and the reason the raise exists."""
     src = tmp_path / "broken.md"
-    src.write_text("# Handbook\n\n```\nrun the importer\n\nMore prose here.\n")
+    src.write_text("# Handbook\n\n```\nrun the importer\n\nMore prose here.\n", encoding="utf-8")
 
     r = run_tool("run", src, "-o", tmp_path / "o.md")
     said = r.stdout + r.stderr

@@ -14,7 +14,7 @@ from killverbosity.runrecord import write_run_record
 DOC = ("# Notes\n\n| id | state |\n|---|---|\n| C1 | done |\n\n"
        "This paragraph is, in point of fact, considerably longer than it "
        "strictly needs to be.\n")
-READS = "import sys; open(sys.argv[1]).read()"
+READS = "import sys; open(sys.argv[1], encoding='utf-8').read()"
 
 SHORT = DOC.replace("This paragraph is, in point of fact, considerably longer "
                     "than it strictly needs to be.",
@@ -28,15 +28,15 @@ def _own_trust_store(tmp_path, monkeypatch):
 
 
 def _gate(tmp_path, argv, name="cells", timeout=30):
-    (tmp_path / ".killverbosity.json").write_text("{}")
+    (tmp_path / ".killverbosity.json").write_text("{}", encoding="utf-8")
     (tmp_path / ".killverbosity.gates.json").write_text(json.dumps(
-        {"gates": [{"name": name, "argv": argv, "timeout": timeout}]}))
+        {"gates": [{"name": name, "argv": argv, "timeout": timeout}]}), encoding="utf-8")
     return tmp_path / ".killverbosity.gates.json"
 
 
 def _pair(tmp_path, edited=SHORT):
-    (tmp_path / "note.md").write_text(DOC)
-    (tmp_path / "note.kv.md").write_text(edited)
+    (tmp_path / "note.md").write_text(DOC, encoding="utf-8")
+    (tmp_path / "note.kv.md").write_text(edited, encoding="utf-8")
     return tmp_path / "note.md", tmp_path / "note.kv.md"
 
 
@@ -49,7 +49,7 @@ def _ready(tmp_path, **kw):
 
 def _script(tmp_path, body, name="gate.py"):
     p = tmp_path / name
-    p.write_text(body)
+    p.write_text(body, encoding="utf-8")
     p.chmod(p.stat().st_mode | stat.S_IEXEC)
     return p
 
@@ -65,7 +65,7 @@ def _trusted(tmp_path, argv, **kw):
 def test_an_untrusted_declaration_executes_nothing(tmp_path):
     """The declaration is found by walking UP from the document."""
     _gate(tmp_path, [sys.executable, "-c",
-                     "open('RAN','w').write('x')", "{edited}"])
+                     "open('RAN','w', encoding='utf-8').write('x')", "{edited}"])
     orig, edited = _pair(tmp_path)
     r = run_tool("verify", orig, edited)
     assert "no acknowledgement in" in r.stderr, r.stderr
@@ -80,7 +80,7 @@ def test_editing_a_trusted_declaration_untrusts_it(tmp_path):
     orig, edited = _pair(tmp_path)
     assert "no acknowledgement in" not in run_tool("verify", orig,
                                                    edited).stderr
-    g.write_text(g.read_text().replace(READS, READS + " "))
+    g.write_text(g.read_text(encoding="utf-8").replace(READS, READS + " "), encoding="utf-8")
     r = run_tool("verify", orig, edited)
     assert "no acknowledgement in" in r.stderr, r.stderr
 
@@ -88,7 +88,7 @@ def test_editing_a_trusted_declaration_untrusts_it(tmp_path):
 def test_trust_refuses_a_declaration_that_cannot_run(tmp_path):
     """Recording an approval for bytes nobody has seen work banks nothing."""
     (tmp_path / ".killverbosity.gates.json").write_text(json.dumps(
-        {"gates": [{"name": "x", "argv": ["true"], "timeout": 5}]}))
+        {"gates": [{"name": "x", "argv": ["true"], "timeout": 5}]}), encoding="utf-8")
     r = run_tool("trust", tmp_path / ".killverbosity.gates.json")
     assert r.returncode == 2, r.stdout + r.stderr
     assert "{edited}" in r.stderr, r.stderr
@@ -96,7 +96,7 @@ def test_trust_refuses_a_declaration_that_cannot_run(tmp_path):
 
 def test_trust_takes_only_the_one_filename(tmp_path):
     other = tmp_path / "something.json"
-    other.write_text("{}")
+    other.write_text("{}", encoding="utf-8")
     r = run_tool("trust", other)
     assert r.returncode == 2, r.stdout + r.stderr
     assert "only a file named" in r.stderr, r.stderr
@@ -117,7 +117,7 @@ def test_a_gate_that_cannot_see_the_edit_is_refused_before_it_runs(tmp_path):
 def test_a_fixed_path_gate_is_the_shape_this_refusal_exists_for(tmp_path):
     """The real input, not a synthetic one."""
     _gate(tmp_path, [sys.executable, "-c",
-                     "open('RAN','w').write('x')"], name="tracker-columns")
+                     "open('RAN','w', encoding='utf-8').write('x')"], name="tracker-columns")
     orig, edited = _pair(tmp_path)
     r = run_tool("verify", orig, edited)
     assert "tracker-columns" in r.stderr, r.stderr
@@ -127,18 +127,18 @@ def test_a_fixed_path_gate_is_the_shape_this_refusal_exists_for(tmp_path):
 
 
 def test_a_gate_with_no_timeout_is_refused(tmp_path):
-    (tmp_path / ".killverbosity.json").write_text("{}")
+    (tmp_path / ".killverbosity.json").write_text("{}", encoding="utf-8")
     (tmp_path / ".killverbosity.gates.json").write_text(json.dumps(
-        {"gates": [{"name": "x", "argv": ["echo", "{edited}"]}]}))
+        {"gates": [{"name": "x", "argv": ["echo", "{edited}"]}]}), encoding="utf-8")
     orig, edited = _pair(tmp_path)
     r = run_tool("verify", orig, edited)
     assert "timeout" in r.stderr and "hangs" in r.stderr, r.stderr
 
 
 def test_a_command_line_in_one_string_is_refused(tmp_path):
-    (tmp_path / ".killverbosity.json").write_text("{}")
+    (tmp_path / ".killverbosity.json").write_text("{}", encoding="utf-8")
     (tmp_path / ".killverbosity.gates.json").write_text(json.dumps(
-        {"gates": [{"name": "x", "argv": "echo {edited}", "timeout": 5}]}))
+        {"gates": [{"name": "x", "argv": "echo {edited}", "timeout": 5}]}), encoding="utf-8")
     orig, edited = _pair(tmp_path)
     r = run_tool("verify", orig, edited)
     assert "non-empty list of strings" in r.stderr, r.stderr
@@ -157,7 +157,7 @@ def test_a_passing_gate_is_reported_and_blocks_nothing(tmp_path):
 def test_a_gate_the_edit_breaks_fails_the_verify(tmp_path):
     g = _script(tmp_path, "import sys\n"
                           "sys.exit(0 if 'in point of fact' in "
-                          "open(sys.argv[1]).read() else 7)\n")
+                          "open(sys.argv[1], encoding='utf-8').read() else 7)\n")
     _trusted(tmp_path, [sys.executable, str(g), "{edited}"])
     orig, edited = _pair(tmp_path)
     r = run_tool("verify", orig, edited)
@@ -205,7 +205,7 @@ def test_a_different_name_excuses_nothing(tmp_path, monkeypatch):
 def test_a_gate_that_prints_a_warning_and_exits_zero_is_passing(tmp_path):
     """Classified on exit status only, never on stderr content."""
     g = _script(tmp_path, "import sys\n"
-                          "open(sys.argv[1]).read()\n"
+                          "open(sys.argv[1], encoding='utf-8').read()\n"
                           "print('DeprecationWarning: old api', "
                           "file=sys.stderr)\n")
     _trusted(tmp_path, [sys.executable, str(g), "{edited}"])
@@ -244,9 +244,9 @@ def test_a_gate_that_ignores_the_path_it_is_given_is_refused(tmp_path):
     shape rather than a corner.
     """
     fixed = tmp_path / "tracker.md"
-    fixed.write_text("the gate's own idea of what to read\n")
+    fixed.write_text("the gate's own idea of what to read\n", encoding="utf-8")
     g = _script(tmp_path, "import sys\n"
-                          "open('tracker.md').read()\n"
+                          "open('tracker.md', encoding='utf-8').read()\n"
                           "sys.exit(0)\n")
     _trusted(tmp_path, [sys.executable, str(g), "{original}", "{edited}"])
     orig, edited = _pair(tmp_path)
@@ -268,15 +268,15 @@ def test_a_blind_gate_is_not_a_verdict_about_the_document(tmp_path):
 
 def test_a_good_gate_beside_a_blind_one_prints_no_clean_sweep(tmp_path):
     """Two gates, and the mutation audit is what asked for this case."""
-    good = _script(tmp_path, "import sys\nopen(sys.argv[1]).read()\n",
+    good = _script(tmp_path, "import sys\nopen(sys.argv[1], encoding='utf-8').read()\n",
                    name="good.py")
     blind = _script(tmp_path, "import sys\nsys.exit(0)\n", name="blind.py")
-    (tmp_path / ".killverbosity.json").write_text("{}")
+    (tmp_path / ".killverbosity.json").write_text("{}", encoding="utf-8")
     (tmp_path / ".killverbosity.gates.json").write_text(json.dumps({"gates": [
         {"name": "reads-it", "argv": [sys.executable, str(good), "{edited}"],
          "timeout": 30},
         {"name": "wrapper", "argv": [sys.executable, str(blind), "{edited}"],
-         "timeout": 30}]}))
+         "timeout": 30}]}), encoding="utf-8")
     assert run_tool("trust", tmp_path / ".killverbosity.gates.json"
                     ).returncode == 0
     orig, edited = _pair(tmp_path)
@@ -288,12 +288,12 @@ def test_a_good_gate_beside_a_blind_one_prints_no_clean_sweep(tmp_path):
 
 def _two_gates(tmp_path, second):
     """One gate that reads {edited}, plus whatever `second` is."""
-    good = _script(tmp_path, "import sys\nopen(sys.argv[1]).read()\n",
+    good = _script(tmp_path, "import sys\nopen(sys.argv[1], encoding='utf-8').read()\n",
                    name="good.py")
-    (tmp_path / ".killverbosity.json").write_text("{}")
+    (tmp_path / ".killverbosity.json").write_text("{}", encoding="utf-8")
     (tmp_path / ".killverbosity.gates.json").write_text(json.dumps({"gates": [
         {"name": "reads-it", "argv": [sys.executable, str(good), "{edited}"],
-         "timeout": 30}, second]}))
+         "timeout": 30}, second]}), encoding="utf-8")
     assert run_tool("trust", tmp_path / ".killverbosity.gates.json"
                     ).returncode == 0
     return _pair(tmp_path)
@@ -326,12 +326,12 @@ def test_a_gate_the_probe_never_reached_is_not_counted_as_reading(tmp_path):
     """The denominator is the PROBED population, not every declared gate."""
     blind = _script(tmp_path, "import sys\nsys.exit(0)\n", name="blind.py")
     red = _script(tmp_path, "import sys\nsys.exit(9)\n", name="red.py")
-    (tmp_path / ".killverbosity.json").write_text("{}")
+    (tmp_path / ".killverbosity.json").write_text("{}", encoding="utf-8")
     (tmp_path / ".killverbosity.gates.json").write_text(json.dumps({"gates": [
         {"name": "wrapper", "argv": [sys.executable, str(blind), "{edited}"],
          "timeout": 30},
         {"name": "was-red", "argv": [sys.executable, str(red), "{edited}"],
-         "timeout": 30}]}))
+         "timeout": 30}]}), encoding="utf-8")
     assert run_tool("trust", tmp_path / ".killverbosity.gates.json"
                     ).returncode == 0
     orig, edited = _pair(tmp_path)
@@ -376,7 +376,7 @@ def test_a_refused_declaration_says_the_verdict_does_not_cover_it(tmp_path):
 
 def test_a_tree_that_declares_nothing_says_nothing_about_gates(tmp_path):
     """The control for the sentence above, and it is what keeps it narrow."""
-    (tmp_path / ".killverbosity.json").write_text("{}")
+    (tmp_path / ".killverbosity.json").write_text("{}", encoding="utf-8")
     orig, edited = _pair(tmp_path)
     r = run_tool("verify", orig, edited)
     assert "no declared check ran" not in r.stderr, r.stderr
@@ -395,7 +395,7 @@ def test_accept_refuses_a_blind_gate_where_verify_reads_on(tmp_path):
     assert "never read the edit" in r.stderr or "have never judged this edit" \
         in r.stderr, r.stderr
     assert "KV_GATE_BLIND_OK=cells" in r.stderr, r.stderr
-    assert orig.read_text() == DOC, "accept copied anyway"
+    assert orig.read_text(encoding="utf-8") == DOC, "accept copied anyway"
 
 
 def test_the_blind_acknowledgement_is_its_own_variable(tmp_path, monkeypatch):
@@ -457,26 +457,26 @@ def test_a_gate_that_does_read_the_file_is_not_called_blind(tmp_path):
 def test_the_probe_is_skipped_for_a_gate_that_already_has_a_verdict(tmp_path):
     """A gate that is red needs no probe: a blind gate cannot be red."""
     g = _script(tmp_path, "import sys\n"
-                          "open('RUNS','a').write('x')\n"
+                          "open('RUNS','a', encoding='utf-8').write('x')\n"
                           "sys.exit(7)\n")
     _trusted(tmp_path, [sys.executable, str(g), "{edited}"])
     orig, edited = _pair(tmp_path)
     r = run_tool("verify", orig, edited)
     assert "GATES ALREADY RED" in r.stdout, r.stdout
-    assert (tmp_path / "RUNS").read_text() == "xx", \
-        (tmp_path / "RUNS").read_text()
+    assert (tmp_path / "RUNS").read_text(encoding="utf-8") == "xx", \
+        (tmp_path / "RUNS").read_text(encoding="utf-8")
 
 
 
 def test_the_gate_never_learns_the_sidecar_s_name(tmp_path):
     """Fixed BY CONSTRUCTION for a gate that reads its own arguments."""
     g = _script(tmp_path, "import sys\n"
-                          "open(sys.argv[1]).read()\n"
-                          "open('SAW','a').write(sys.argv[1] + '\\n')\n")
+                          "open(sys.argv[1], encoding='utf-8').read()\n"
+                          "open('SAW','a', encoding='utf-8').write(sys.argv[1] + '\\n')\n")
     _trusted(tmp_path, [sys.executable, str(g), "{edited}"])
     orig, edited = _pair(tmp_path)
     run_tool("verify", orig, edited)
-    saw = (tmp_path / "SAW").read_text().split()
+    saw = (tmp_path / "SAW").read_text(encoding="utf-8").split()
     assert len(saw) == 2, saw
     assert not any("note.kv.md" in s for s in saw), saw
     assert all(s.endswith("note.md") for s in saw), saw
@@ -488,39 +488,39 @@ def test_an_argument_carrying_shell_metacharacters_stays_one_argument(
         tmp_path):
     """A declared argv list, never a shell string."""
     g = _script(tmp_path, "import sys\n"
-                          "open(sys.argv[2]).read()\n"
-                          "open('ARGS','w').write(repr(sys.argv[1:]))\n")
+                          "open(sys.argv[2], encoding='utf-8').read()\n"
+                          "open('ARGS','w', encoding='utf-8').write(repr(sys.argv[1:]))\n")
     _trusted(tmp_path, [sys.executable, str(g), "a & b ; c", "{edited}"])
     orig, edited = _pair(tmp_path)
     run_tool("verify", orig, edited)
-    got = ast.literal_eval((tmp_path / "ARGS").read_text())
+    got = ast.literal_eval((tmp_path / "ARGS").read_text(encoding="utf-8"))
     assert got[0] == "a & b ; c", got
     assert len(got) == 2, got
 
 
 def test_the_original_is_passed_too_so_a_gate_can_compare(tmp_path):
     g = _script(tmp_path, "import sys\n"
-                          "a = open(sys.argv[1]).read()\n"
-                          "b = open(sys.argv[2]).read()\n"
-                          "open('BOTH','w').write('same' if a == b else 'diff')\n")
+                          "a = open(sys.argv[1], encoding='utf-8').read()\n"
+                          "b = open(sys.argv[2], encoding='utf-8').read()\n"
+                          "open('BOTH','w', encoding='utf-8').write('same' if a == b else 'diff')\n")
     _trusted(tmp_path, [sys.executable, str(g), "{original}", "{edited}"])
     orig, edited = _pair(tmp_path)
     run_tool("verify", orig, edited)
-    assert (tmp_path / "BOTH").read_text() == "diff"
+    assert (tmp_path / "BOTH").read_text(encoding="utf-8") == "diff"
 
 
 def test_the_sidecar_is_named_in_the_environment_for_tree_walking_gates(
         tmp_path):
     """The DECLARED LIMIT, asserted rather than left as prose."""
     g = _script(tmp_path, "import os, sys\n"
-                          "open(sys.argv[1]).read()\n"
-                          "open('ENV','w').write(os.environ.get("
+                          "open(sys.argv[1], encoding='utf-8').read()\n"
+                          "open('ENV','w', encoding='utf-8').write(os.environ.get("
                           "'KV_SIDECAR', 'MISSING'))\n")
     _trusted(tmp_path, [sys.executable, str(g), "{edited}"])
     orig, edited = _pair(tmp_path)
     run_tool("verify", orig, edited)
-    assert (tmp_path / "ENV").read_text().endswith("note.kv.md"), \
-        (tmp_path / "ENV").read_text()
+    assert (tmp_path / "ENV").read_text(encoding="utf-8").endswith("note.kv.md"), \
+        (tmp_path / "ENV").read_text(encoding="utf-8")
 
 
 def test_the_declaration_is_read_beside_the_winning_config_only(tmp_path):
@@ -528,11 +528,11 @@ def test_the_declaration_is_read_beside_the_winning_config_only(tmp_path):
     deep = tmp_path / "docs"
     deep.mkdir()
     _trusted(tmp_path, [sys.executable, "-c",
-                        "import sys; open(sys.argv[1]).read(); "
-                        "open('ROOT_RAN','w').write('x')", "{edited}"])
-    (deep / ".killverbosity.json").write_text("{}")
-    (deep / "note.md").write_text(DOC)
-    (deep / "note.kv.md").write_text(SHORT)
+                        "import sys; open(sys.argv[1], encoding='utf-8').read(); "
+                        "open('ROOT_RAN','w', encoding='utf-8').write('x')", "{edited}"])
+    (deep / ".killverbosity.json").write_text("{}", encoding="utf-8")
+    (deep / "note.md").write_text(DOC, encoding="utf-8")
+    (deep / "note.kv.md").write_text(SHORT, encoding="utf-8")
     r = run_tool("verify", deep / "note.md", deep / "note.kv.md")
     assert str(deep / ".killverbosity.json") in r.stderr, r.stderr
     assert not (tmp_path / "ROOT_RAN").exists(), \
@@ -544,7 +544,7 @@ def test_the_declaration_is_read_beside_the_winning_config_only(tmp_path):
 
 
 def test_no_declaration_means_no_mention_of_gates_at_all(tmp_path):
-    (tmp_path / ".killverbosity.json").write_text("{}")
+    (tmp_path / ".killverbosity.json").write_text("{}", encoding="utf-8")
     orig, edited = _pair(tmp_path)
     r = run_tool("verify", orig, edited)
     assert "gates" not in r.stdout.lower(), r.stdout

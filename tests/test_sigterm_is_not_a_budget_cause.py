@@ -44,7 +44,7 @@ def test_a_sigterm_with_budget_left_names_sigterm_and_never_the_budget(
     a real signal to the runner is a cross-test hazard on top of that.
     """
     src, out = tmp_path / "doc.md", tmp_path / "out.md"
-    src.write_text(DOC + "\n")
+    src.write_text(DOC + "\n", encoding="utf-8")
     monkeypatch.setattr(kv, "JOBS", 1)
     calls = []
 
@@ -69,7 +69,7 @@ def test_a_budget_that_really_expires_still_says_so(
         kv, monkeypatch, tmp_path, capsys):
     """Control: the budget sentence must survive where it is true."""
     src, out = tmp_path / "doc.md", tmp_path / "out.md"
-    src.write_text(DOC + "\n")
+    src.write_text(DOC + "\n", encoding="utf-8")
     monkeypatch.setattr(kv, "JOBS", 1)
     now = [0.0]
     real = kv.budget.Budget

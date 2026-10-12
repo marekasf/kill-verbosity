@@ -44,7 +44,7 @@ def test_the_copy_can_grow_a_cache_at_all(tmp_path):
         [sys.executable, "-c",
          f"import sys; sys.path.insert(0, {str(root)!r}); "
          "import killverbosity._legacy"],
-        capture_output=True, text=True, env=_env())
+        capture_output=True, text=True, env=_env(), encoding="utf-8")
     assert r.returncode == 0, r.stderr
     assert _caches(root), "the control wrote no __pycache__, so the cases " \
         "below cannot tell a fix from a copy that never compiles"
@@ -54,7 +54,7 @@ def test_version_in_place_writes_no_bytecode(tmp_path):
     root = _copy(tmp_path)
     r = subprocess.run(
         [sys.executable, str(root / "kill-verbosity"), "--version"],
-        capture_output=True, text=True, env=_env())
+        capture_output=True, text=True, env=_env(), encoding="utf-8")
     assert r.returncode == 0, (r.stdout, r.stderr)
     assert r.stdout.strip(), r.stderr
     assert not _caches(root), f"--version wrote bytecode: {_caches(root)}"
@@ -65,7 +65,7 @@ def test_version_after_the_utf8_hop_writes_no_bytecode(tmp_path):
     root = _copy(tmp_path)
     r = subprocess.run(
         [sys.executable, str(root / "kill-verbosity"), "--version"],
-        capture_output=True, text=True, env={**_env(), **HOSTILE})
+        capture_output=True, text=True, env={**_env(), **HOSTILE}, encoding="utf-8")
     assert r.returncode == 0, (r.stdout, r.stderr)
     assert r.stdout.strip(), r.stderr
     assert not _caches(root), \

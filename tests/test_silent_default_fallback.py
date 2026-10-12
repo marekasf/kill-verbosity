@@ -23,7 +23,7 @@ NOISE = re.compile(r"failed|fallback|falling to|substituted|not installed|"
 
 def _run(kv, monkeypatch, tmp_path, capsys, installed, fake):
     src = tmp_path / "doc.md"
-    src.write_text(DOC + "\n")
+    src.write_text(DOC + "\n", encoding="utf-8")
     monkeypatch.delenv("KV_AGENT", raising=False)
     monkeypatch.setattr(kv, "_INSTALLED_OVERRIDE", installed)
     monkeypatch.setattr(kv.shutil, "which", lambda n, *a, **k: n)

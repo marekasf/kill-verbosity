@@ -80,7 +80,7 @@ def _drive(tmp_path, windows=WIN, rc=0, opt=False, hostile=True,
         extra["PYTHONUTF8"] = "1"
     return subprocess.run(
         [sys.executable, *(["-O"] if opt else []), "-c", src],
-        capture_output=True, text=True, env=_env(hostile, **extra))
+        capture_output=True, text=True, env=_env(hostile, **extra), encoding="utf-8")
 
 
 _PROBE = (
@@ -94,7 +94,7 @@ _PROBE = (
 def _probe(env):
     r = subprocess.run(
         [sys.executable, "-c", _PROBE], capture_output=True, text=True,
-        env=env)
+        env=env, encoding="utf-8")
     assert r.returncode == 0, r.stderr
     return dict(line.split(" ", 1) for line in r.stdout.strip().splitlines())
 
@@ -177,9 +177,9 @@ def test_the_real_tool_runs_under_a_non_utf8_locale():
     """End to end, no injection: the selftest under an ASCII locale."""
     cmd = [sys.executable, ENTRY, "selftest"]
     hostile = subprocess.run(
-        cmd, capture_output=True, text=True, env=_env(hostile=True))
+        cmd, capture_output=True, text=True, env=_env(hostile=True), encoding="utf-8")
     ordinary = subprocess.run(
-        cmd, capture_output=True, text=True, env=_env(hostile=False))
+        cmd, capture_output=True, text=True, env=_env(hostile=False), encoding="utf-8")
 
     assert "Traceback" not in hostile.stderr, hostile.stderr
     assert hostile.returncode == ordinary.returncode == 0, (
@@ -190,11 +190,12 @@ def test_the_real_tool_runs_under_a_non_utf8_locale():
 
 
 @posix_only
-def test_the_guard_is_what_stops_a_second_hop():
-    """With the guard preset the hop is skipped, and the ASCII locale bites."""
+def test_with_the_hop_skipped_the_ascii_locale_no_longer_bites():
+    """With the guard preset the hop is skipped, and every file read and
+    write names its encoding, so the ASCII locale has nothing left to bite."""
     r = subprocess.run(
         [sys.executable, ENTRY, "selftest"], capture_output=True, text=True,
-        env=_env(hostile=True, **{GUARD: "1"}))
-    assert r.returncode == 1, (r.returncode, r.stderr[-2000:])
-    assert "UnicodeDecodeError" in r.stderr or \
-           "UnicodeEncodeError" in r.stderr, r.stderr[-2000:]
+        env=_env(hostile=True, **{GUARD: "1"}), encoding="utf-8")
+    assert r.returncode == 0, (r.returncode, r.stderr[-2000:])
+    assert "UnicodeDecodeError" not in r.stderr and \
+           "UnicodeEncodeError" not in r.stderr, r.stderr[-2000:]

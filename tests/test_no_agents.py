@@ -13,21 +13,21 @@ DOC = ("# Notes\n\n| id | state |\n|---|---|\n| C1 | done |\n\n"
 
 
 def _doc(tmp_path):
-    (tmp_path / ".killverbosity.json").write_text("{}")
-    (tmp_path / "note.md").write_text(DOC)
+    (tmp_path / ".killverbosity.json").write_text("{}", encoding="utf-8")
+    (tmp_path / "note.md").write_text(DOC, encoding="utf-8")
     return tmp_path / "note.md"
 
 
 def _script(tmp_path, body, name):
     p = tmp_path / name
-    p.write_text(body)
+    p.write_text(body, encoding="utf-8")
     p.chmod(p.stat().st_mode | stat.S_IEXEC)
     return p
 
 
 def _gates(tmp_path, *gates):
     (tmp_path / ".killverbosity.gates.json").write_text(
-        json.dumps({"gates": list(gates)}))
+        json.dumps({"gates": list(gates)}), encoding="utf-8")
     assert run_tool("trust", tmp_path / ".killverbosity.gates.json"
                     ).returncode == 0
 
@@ -44,8 +44,8 @@ def test_no_agents_writes_a_record_and_leaves_the_text_alone(tmp_path):
     r = run_tool("run", src, "--no-agents")
     assert r.returncode in (0, 3), (r.returncode, r.stdout, r.stderr)
     out = tmp_path / "note.kv.md"
-    assert out.read_text() == DOC, "the output is the input, byte for byte"
-    rec = json.loads(run_record_path(out).read_text())
+    assert out.read_text(encoding="utf-8") == DOC, "the output is the input, byte for byte"
+    rec = json.loads(run_record_path(out).read_text(encoding="utf-8"))
     assert rec["no_agents"] is True, rec
 
 
@@ -54,7 +54,7 @@ def test_nothing_is_dispatched(tmp_path):
     src = _doc(tmp_path)
     r = run_tool("run", src, "--no-agents", "--agent", "agy")
     assert r.returncode in (0, 3), (r.returncode, r.stdout, r.stderr)
-    assert (tmp_path / "note.kv.md").read_text() == DOC
+    assert (tmp_path / "note.kv.md").read_text(encoding="utf-8") == DOC
     said = r.stdout + r.stderr
     for bad in ("could not be launched", "asking once more", "never edited",
                 "unusable", "jobs failed"):
@@ -85,7 +85,7 @@ def test_an_ordinary_record_says_none_of_that(tmp_path):
     from killverbosity.runrecord import write_run_record
     src = _doc(tmp_path)
     out = tmp_path / "note.kv.md"
-    out.write_text(DOC)
+    out.write_text(DOC, encoding="utf-8")
     write_run_record(out, agent="codex", incomplete=[])
     r = run_tool("verify", src, out)
     assert "called no specialist" not in r.stdout, r.stdout
@@ -96,12 +96,12 @@ def test_the_accept_blind_refusal_is_now_reachable_without_a_dispatch(tmp_path):
     src = _doc(tmp_path)
     _blind_gate(tmp_path)
     run_tool("run", src, "--no-agents")
-    before = src.read_text()
+    before = src.read_text(encoding="utf-8")
     r = run_tool("accept", src)
     assert r.returncode == 1, (r.returncode, r.stdout, r.stderr)
     assert "not accepted" in r.stderr, r.stderr
     assert "wrapper" in r.stderr, r.stderr
-    assert src.read_text() == before, "the input was replaced by a refusal"
+    assert src.read_text(encoding="utf-8") == before, "the input was replaced by a refusal"
 
 
 def test_a_clean_tree_reaches_the_last_refusal_and_keeps_the_file(tmp_path):
@@ -109,7 +109,7 @@ def test_a_clean_tree_reaches_the_last_refusal_and_keeps_the_file(tmp_path):
     right reason, which is the assertion that matters.
     """
     src = _doc(tmp_path)
-    good = _script(tmp_path, "import sys\nopen(sys.argv[1]).read()\n", "g.py")
+    good = _script(tmp_path, "import sys\nopen(sys.argv[1], encoding='utf-8').read()\n", "g.py")
     _gates(tmp_path, {"name": "reads-it",
                       "argv": [sys.executable, str(good), "{edited}"],
                       "timeout": 30})
@@ -118,7 +118,7 @@ def test_a_clean_tree_reaches_the_last_refusal_and_keeps_the_file(tmp_path):
     assert r.returncode == 1, (r.returncode, r.stdout, r.stderr)
     assert "called no specialist" in r.stderr, r.stderr
     assert "nothing here to accept" in r.stderr, r.stderr
-    assert src.read_text() == DOC
+    assert src.read_text(encoding="utf-8") == DOC
     assert (tmp_path / "note.kv.md").exists(), "a refusal cleared the sidecar"
 
 
@@ -140,5 +140,5 @@ def test_forcing_past_it_copies_the_file_and_says_what_it_forced(tmp_path):
     src = _doc(tmp_path)
     run_tool("run", src, "--no-agents")
     r = run_tool("accept", src, force=True)
-    assert src.read_text() == DOC
+    assert src.read_text(encoding="utf-8") == DOC
     assert "nothing to accept" in r.stdout + r.stderr, (r.stdout, r.stderr)

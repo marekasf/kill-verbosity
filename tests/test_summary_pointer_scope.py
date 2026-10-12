@@ -44,8 +44,8 @@ def _edited(lede, summary):
 def _verify(kv, tmp_path, original, edited):
     o = tmp_path / "o.md"
     n = tmp_path / "n.md"
-    o.write_text(original)
-    n.write_text(edited)
+    o.write_text(original, encoding="utf-8")
+    n.write_text(edited, encoding="utf-8")
     buf = io.StringIO()
     with contextlib.redirect_stdout(buf):
         rc = kv.cmd_verify(argparse.Namespace(
@@ -99,7 +99,7 @@ def test_the_control_a_pointer_the_run_wrote_at_a_missing_section(kv, tmp_path):
 def _delivery_section() -> str:
     from pathlib import Path
     src = (Path(__file__).resolve().parent.parent
-           / "specialists/summary.md").read_text()
+           / "specialists/summary.md").read_text(encoding="utf-8")
     return src.split("## How to deliver it", 1)[1]
 
 

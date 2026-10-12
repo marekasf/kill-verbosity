@@ -19,7 +19,7 @@ DOC = "\n".join(
 
 def _run(kv, monkeypatch, tmp_path, capsys, launcher, *extra_argv):
     src = tmp_path / "doc.md"
-    src.write_text(DOC + "\n")
+    src.write_text(DOC + "\n", encoding="utf-8")
     monkeypatch.setattr(kv, "call_agent", launcher)
     monkeypatch.setattr(kv, "JOBS", 1)
     monkeypatch.setattr(kv, "_INSTALLED_OVERRIDE",
@@ -54,7 +54,7 @@ def test_a_mostly_substituted_run_prints_no_answered_by_line(
     assert "answered by:" not in out, out[-600:]
     assert "did not run on codex" not in out, out[-600:]
     assert out.rstrip().splitlines()[-1].startswith("exit "), out[-300:]
-    rec = json.loads(kv.run_record_path(tmp_path / "out.md").read_text())
+    rec = json.loads(kv.run_record_path(tmp_path / "out.md").read_text(encoding="utf-8"))
     assert rec["substituted_jobs"] >= 1, rec
     assert any(j.get("answered_by") == GOOGLE
                for j in rec["job_spans"]), rec["job_spans"]

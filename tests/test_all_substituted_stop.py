@@ -44,7 +44,7 @@ def _run_main(kv, monkeypatch, argv):
 
 def _drive(kv, monkeypatch, tmp_path, capsys, extra_argv, substitute):
     src = tmp_path / "doc.md"
-    src.write_text(DOC + "\n")
+    src.write_text(DOC + "\n", encoding="utf-8")
     out = tmp_path / "out.md"
     monkeypatch.setattr(kv, "call_agent", _launcher(substitute))
     monkeypatch.setattr(kv, "JOBS", 1)

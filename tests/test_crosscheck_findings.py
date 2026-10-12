@@ -20,8 +20,8 @@ CODEX_WRITER = "codex"
 
 def _pair(tmp_path, name="d", text="# Doc\n\nSome prose here.\n"):
     orig, out = tmp_path / f"{name}.md", tmp_path / f"{name}.kv.md"
-    orig.write_text(text)
-    out.write_text(text)
+    orig.write_text(text, encoding="utf-8")
+    out.write_text(text, encoding="utf-8")
     return orig, out
 
 
@@ -31,7 +31,7 @@ def _ns(orig, out, backend):
 
 
 def _record(out):
-    return json.loads(runrecord.crosscheck_record_path(out).read_text())
+    return json.loads(runrecord.crosscheck_record_path(out).read_text(encoding="utf-8"))
 
 
 def _write_codex_run(kv, out):
@@ -124,8 +124,8 @@ def test_accept_warns_on_an_older_record_but_does_not_refuse(tmp_path):
     out = tmp_path / "hand.kv.md"
     text = ("# T\n\nThe room was warm and the window faced the garden, and "
             "the afternoon went by slowly.\n")
-    src.write_text(text)
-    out.write_text("# T\n\nThe room was warm.\n")
+    src.write_text(text, encoding="utf-8")
+    out.write_text("# T\n\nThe room was warm.\n", encoding="utf-8")
     runrecord.write_run_record(out)
     runrecord.write_crosscheck_record(
         out, backend="codex", answered_by="agy", wrote=["codex"],
@@ -148,8 +148,8 @@ def test_accept_stays_quiet_on_a_fresh_empty_findings_record(tmp_path):
     out = tmp_path / "hand2.kv.md"
     text = ("# T\n\nThe room was warm and the window faced the garden, and "
             "the afternoon went by slowly.\n")
-    src.write_text(text)
-    out.write_text("# T\n\nThe room was warm.\n")
+    src.write_text(text, encoding="utf-8")
+    out.write_text("# T\n\nThe room was warm.\n", encoding="utf-8")
     runrecord.write_run_record(out)
     runrecord.write_crosscheck_record(
         out, backend="codex", answered_by="agy", wrote=["codex"],

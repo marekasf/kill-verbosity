@@ -26,8 +26,8 @@ UNBACKED = ("The worker processed 9150 batches after Marisol approved the "
 
 def _verify(kv, tmp_path, new):
     a, b = tmp_path / "o.md", tmp_path / "n.md"
-    a.write_text(ORIG)
-    b.write_text(new)
+    a.write_text(ORIG, encoding="utf-8")
+    b.write_text(new, encoding="utf-8")
     kv.write_run_record(b, inserted=True)
     os.utime(kv.run_record_path(b), (time.time() + 5,) * 2)
     buf = io.StringIO()

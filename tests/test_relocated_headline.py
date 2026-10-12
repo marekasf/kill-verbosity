@@ -53,8 +53,8 @@ You must never delete the run record beside the output file.
 
 def _verify(tmp_path, before, after):
     a, b = tmp_path / "a.md", tmp_path / "b.md"
-    a.write_text(before)
-    b.write_text(after)
+    a.write_text(before, encoding="utf-8")
+    b.write_text(after, encoding="utf-8")
     return run_tool("verify", a, b)
 
 

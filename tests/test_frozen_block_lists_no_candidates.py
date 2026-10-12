@@ -48,7 +48,7 @@ def _rows(out):
 
 def test_plan_lists_nothing_inside_a_freeze_block(tmp_path):
     p = tmp_path / "doc.md"
-    p.write_text(DOC)
+    p.write_text(DOC, encoding="utf-8")
     r = run_tool("plan", p)
     assert r.returncode == 0, (r.returncode, r.stdout, r.stderr)
     rows = _rows(r.stdout)
@@ -63,7 +63,7 @@ def test_plan_lists_nothing_inside_a_freeze_block(tmp_path):
 
 def test_run_dispatches_no_job_for_a_frozen_section(kv, monkeypatch, tmp_path):
     p = tmp_path / "doc.md"
-    p.write_text(DOC)
+    p.write_text(DOC, encoding="utf-8")
     monkeypatch.setattr(kv, "_INSTALLED_OVERRIDE", {"codex": True})
     ns = argparse.Namespace(
         file=str(p), out=None, agent="codex", chat=False, dry_run=True,

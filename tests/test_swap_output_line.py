@@ -46,20 +46,20 @@ def test_the_report_prints_both_only_when_they_differ(kv, tmp_path,
     import json
     orig = tmp_path / "doc.md"
     out = tmp_path / "doc.kv.md"
-    orig.write_text("# Doc\n\nthe parser stays open.\n")
-    out.write_text("# Doc\n\nthe parser is open.\n")
+    orig.write_text("# Doc\n\nthe parser stays open.\n", encoding="utf-8")
+    out.write_text("# Doc\n\nthe parser is open.\n", encoding="utf-8")
     rec = kv.run_record_path(out)
     rec.write_text(json.dumps({
         "agent": "codex", "no_agents": False, "chat": False,
         "inserted": False, "summary_added": False, "exempt": [],
         "incomplete": [], "refused_summary": None,
-        "source": kv.source_fingerprint(orig.read_text()),
+        "source": kv.source_fingerprint(orig.read_text(encoding="utf-8")),
         "swaps": [
             {"line": 3, "line_out": 7, "by": "prose",
              "was": "stays", "now": "is", "in": "the parser is open."},
             {"line": 9, "line_out": 9, "by": "noise",
              "was": "very", "now": "quite", "in": "a short line"},
-        ]}))
+        ]}), encoding="utf-8")
     monkeypatch.setattr("sys.argv",
                         ["kill-verbosity", "verify", str(orig), str(out)])
     try:
@@ -89,7 +89,7 @@ def test_the_record_a_REAL_RUN_writes_carries_the_output_line(kv, tmp_path,
         f"later inspection by whichever operator happens to be {t}."
         for i, t in enumerate(_tails, 1)]
     src = tmp_path / "doc.md"
-    src.write_text("\n".join(lines) + "\n")
+    src.write_text("\n".join(lines) + "\n", encoding="utf-8")
     out = tmp_path / "out.md"
     target = lines[2]
 
@@ -109,12 +109,12 @@ def test_the_record_a_REAL_RUN_writes_carries_the_output_line(kv, tmp_path,
         pass
     rec = kv.run_record_path(out)
     assert rec.exists(), f"EMPTY: no run record was written to {rec}"
-    swaps = json.loads(rec.read_text()).get("swaps") or []
+    swaps = json.loads(rec.read_text(encoding="utf-8")).get("swaps") or []
     assert swaps, (
         "EMPTY: the run recorded no swap, so nothing below is about the field "
-        f"-- record={rec.read_text()[:400]!r}")
+        f"-- record={rec.read_text(encoding='utf-8')[:400]!r}")
     assert all("line_out" in x for x in swaps), swaps
     assert [x["was"] for x in swaps] == ["inspection"], swaps
     assert swaps[0]["line_out"] is not None, swaps
-    landed = out.read_text().split("\n")[swaps[0]["line_out"] - 1]
+    landed = out.read_text(encoding="utf-8").split("\n")[swaps[0]["line_out"] - 1]
     assert "review" in landed, (swaps[0], landed)

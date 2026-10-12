@@ -30,7 +30,7 @@ def _long_document() -> str:
 @pytest.fixture
 def doc(tmp_path):
     p = tmp_path / "long.md"
-    p.write_text(_long_document())
+    p.write_text(_long_document(), encoding="utf-8")
     return p
 
 
@@ -129,7 +129,7 @@ def test_a_retry_that_answers_badly_also_drops_the_refused_summary(
     printed = capsys.readouterr().out
 
     assert "the backend closed the connection" in printed, printed[-1200:]
-    assert not out.exists() or over not in out.read_text()
+    assert not out.exists() or over not in out.read_text(encoding="utf-8")
 
 
 def test_a_note_survives_the_refused_summary(kv, monkeypatch, doc, tmp_path,
@@ -157,4 +157,4 @@ def test_the_refused_summary_does_not_reach_the_file(kv, monkeypatch, doc,
          "why": "opening summary"}], "notes": []})
     capsys.readouterr()
 
-    assert not out.exists() or over not in out.read_text()
+    assert not out.exists() or over not in out.read_text(encoding="utf-8")

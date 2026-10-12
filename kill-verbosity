@@ -60,7 +60,24 @@ def reexec_utf8():
     os.execv(sys.executable, cmd)
 
 
+def utf8_stdio():
+    """Write stdout and stderr as UTF-8, whatever the environment asked for.
+
+    The restart above makes UTF-8 the default, but `PYTHONIOENCODING` still
+    overrides it for the standard streams, and a pipe encoded as `cp1252`
+    cannot carry the arrows and ellipses the report prints: it dies with
+    UnicodeEncodeError halfway.
+    """
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            if codecs.lookup(stream.encoding).name != "utf-8":
+                stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, LookupError, TypeError, ValueError):
+            pass
+
+
 def main():
+    utf8_stdio()
     from killverbosity._legacy import main as run
     return run()
 

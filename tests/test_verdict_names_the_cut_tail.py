@@ -44,8 +44,8 @@ REVIEW_D5_GUTTED = ("| D5 | A DECORATOR ALONE IS NOT ENOUGH FOR PARAMETRISED "
 
 def _verify(tmp_path, orig, edit, name="t"):
     o, n = tmp_path / f"{name}.orig.md", tmp_path / f"{name}.new.md"
-    o.write_text(orig)
-    n.write_text(edit)
+    o.write_text(orig, encoding="utf-8")
+    n.write_text(edit, encoding="utf-8")
     return run_tool("verify", o, n)
 
 

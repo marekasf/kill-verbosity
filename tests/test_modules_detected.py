@@ -18,18 +18,18 @@ def test_a_domain_is_detected_from_the_text(kv):
 
 def test_plan_prints_the_modules_line(tmp_path):
     doc = tmp_path / "doc.md"
-    doc.write_text("# Notes\n\n" + (LEGAL + " ") * 3 + "\n")
+    doc.write_text("# Notes\n\n" + (LEGAL + " ") * 3 + "\n", encoding="utf-8")
     r = subprocess.run([sys.executable, str(LAUNCHER), "plan", str(doc)],
-                       capture_output=True, text=True)
+                       capture_output=True, text=True, encoding="utf-8")
     assert "modules: legal (" in r.stdout, r.stdout + r.stderr
-    doc.write_text("# Notes\n\n" + PLAIN + "\n")
+    doc.write_text("# Notes\n\n" + PLAIN + "\n", encoding="utf-8")
     r = subprocess.run([sys.executable, str(LAUNCHER), "plan", str(doc)],
-                       capture_output=True, text=True)
+                       capture_output=True, text=True, encoding="utf-8")
     assert "modules: none detected" in r.stdout, r.stdout + r.stderr
 
 
 def test_the_shipped_legal_sample_is_read_as_legal():
     r = subprocess.run([sys.executable, str(LAUNCHER), "plan",
                         str(REPO / "tests" / "fixtures" / "legal-sample.md")],
-                       capture_output=True, text=True)
+                       capture_output=True, text=True, encoding="utf-8")
     assert "modules: legal (" in r.stdout, r.stdout + r.stderr

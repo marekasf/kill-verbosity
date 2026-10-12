@@ -194,7 +194,7 @@ def test_a_run_that_would_rewrite_it_leaves_it_untouched(kv, monkeypatch,
     it, and the finished file still carries the original heading text.
     """
     p, out = tmp_path / "d.md", tmp_path / "o.md"
-    p.write_text(DOC)
+    p.write_text(DOC, encoding="utf-8")
     ln = _heading_line(DATED)
 
     def reply(who, lo, hi):
@@ -206,7 +206,7 @@ def test_a_run_that_would_rewrite_it_leaves_it_untouched(kv, monkeypatch,
     run_canned(kv, monkeypatch, p, out, reply)
 
     assert out.exists(), "run produced no output"
-    assert f"## {DATED}" in out.read_text(), out.read_text()
+    assert f"## {DATED}" in out.read_text(encoding="utf-8"), out.read_text(encoding="utf-8")
 
 
 def test_it_survives_a_run_with_no_agents_too(tmp_path):
@@ -215,10 +215,10 @@ def test_it_survives_a_run_with_no_agents_too(tmp_path):
     baseline every one of the tests above is measured against.
     """
     p = tmp_path / "d.md"
-    p.write_text(DOC)
+    p.write_text(DOC, encoding="utf-8")
 
     r = run_tool("run", p, "--no-agents")
     assert r.returncode in (0, 3), r.stderr + r.stdout
     kv_out = p.parent / (p.stem + ".kv.md")
     assert kv_out.exists(), r.stdout + r.stderr
-    assert f"## {DATED}" in kv_out.read_text(), kv_out.read_text()
+    assert f"## {DATED}" in kv_out.read_text(encoding="utf-8"), kv_out.read_text(encoding="utf-8")

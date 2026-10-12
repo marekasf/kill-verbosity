@@ -9,7 +9,7 @@ REFUSED = 2
 
 def _doc(tmp_path, text):
     p = tmp_path / "d.md"
-    p.write_text(text)
+    p.write_text(text, encoding="utf-8")
     return p
 
 

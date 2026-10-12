@@ -18,7 +18,7 @@ MARKER = "MARKER-" + "x" * 400
 
 def _run_crosscheck(kv, monkeypatch, tmp_path, backend):
     target = tmp_path / "doc.md"
-    target.write_text("# Doc\n\nSome verbose prose here.\n")
+    target.write_text("# Doc\n\nSome verbose prose here.\n", encoding="utf-8")
     seen = {}
 
     def fake_run(cmd, **kwargs):

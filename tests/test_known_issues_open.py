@@ -15,8 +15,8 @@ pytestmark = pytest.mark.regression
 def _pair(tmp_path, before, after):
     o = tmp_path / "o.md"
     n = tmp_path / "n.md"
-    o.write_text(before)
-    n.write_text(after)
+    o.write_text(before, encoding="utf-8")
+    n.write_text(after, encoding="utf-8")
     return o, n
 
 
@@ -166,7 +166,7 @@ def test_an_excerpt_crosses_a_wrapped_line(tmp_path):
     """The sentence ends on the second line. The excerpt reads on to it."""
     doc = tmp_path / "wrapped.md"
     doc.write_text("# T\n\nIt is worth noting that the queue drains\n"
-                   "slowly under load today.\n")
+                   "slowly under load today.\n", encoding="utf-8")
 
     row = next(x for x in run_tool("plan", str(doc)).stdout.splitlines()
                if "  frame " in x)
@@ -178,7 +178,7 @@ def test_an_excerpt_stops_at_the_end_of_its_paragraph(tmp_path):
     """Reading on stops at a blank line and at the block below it."""
     doc = tmp_path / "block.md"
     doc.write_text("# T\n\nIt is worth noting that the queue drains\n\n"
-                   "| job | state |\n| --- | --- |\n| a | done |\n")
+                   "| job | state |\n| --- | --- |\n| a | done |\n", encoding="utf-8")
 
     row = next(x for x in run_tool("plan", str(doc)).stdout.splitlines()
                if "  frame " in x)
@@ -197,7 +197,7 @@ def _summary_doc(kv, monkeypatch, tmp_path, pointer):
             f"budget is {i * 3} seconds and the operator is paged after it. "
             f"Nightly compaction runs at 02:00 and reads the previous day "
             f"only, so a backfill for job {i} needs its own run."
-            for i in range(1, 22)) + "\n")
+            for i in range(1, 22)) + "\n", encoding="utf-8")
 
     def reply(who, lo, _hi):
         if who != "summary":
@@ -455,7 +455,7 @@ def test_two_hits_in_one_table_row_print_different_excerpts(tmp_path):
     doc = tmp_path / "t.md"
     doc.write_text("# T\n\n| Check | Note |\n|---|---|\n"
                    "| retry | it is worth noting that this is utilized in "
-                   "order to drain |\n")
+                   "order to drain |\n", encoding="utf-8")
 
     rows = [x for x in run_tool("plan", str(doc)).stdout.splitlines()
             if x.strip().startswith("5  ")]

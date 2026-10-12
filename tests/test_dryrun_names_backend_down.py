@@ -16,7 +16,7 @@ DOC_BODY = "# Doc\n\n" + "\n".join(
 
 def _dry_run(kv, tmp_path, agent="codex"):
     doc = tmp_path / "note.md"
-    doc.write_text(DOC_BODY)
+    doc.write_text(DOC_BODY, encoding="utf-8")
     ns = argparse.Namespace(
         file=str(doc), out=None, agent=agent, chat=False, dry_run=True,
         job_timeout=30, no_budget=True, only=None, timeout=60,

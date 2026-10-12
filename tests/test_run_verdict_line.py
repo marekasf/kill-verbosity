@@ -21,7 +21,7 @@ FIRST = 6
 
 def _run(kv, monkeypatch, tmp_path, capsys, edits):
     src, out = tmp_path / "doc.md", tmp_path / "out.md"
-    src.write_text(DOC + "\n")
+    src.write_text(DOC + "\n", encoding="utf-8")
 
     def launcher(prompt, agent, timeout, say=None, avoid=()):
         mine = edits if f"L{FIRST}" in prompt or LINES[0][:40] in prompt else []

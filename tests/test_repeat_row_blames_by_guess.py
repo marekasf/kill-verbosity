@@ -63,7 +63,7 @@ def test_group_is_carried_on_the_edits_and_ignored_by_blame():
     assert "group" not in blame.__dict__, (
         "blame now references a group; the guess may be gone - re-point this "
         "file at the derived behaviour")
-    src = (REPO / "killverbosity" / "blame.py").read_text()
+    src = (REPO / "killverbosity" / "blame.py").read_text(encoding="utf-8")
     assert "group" not in src, "blame.py now mentions group - see above"
 
     tagged = _rows([_result("prose", "rewritten by prose", 11, group="jobA"),

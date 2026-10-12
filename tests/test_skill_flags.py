@@ -211,14 +211,14 @@ def test_the_banner_reader_can_say_both_words(cli_flags, tmp_path):
     body = "# probe\n\nRun it with `%s`.\n" % dead
 
     bare = tmp_path / "bare.md"
-    bare.write_text(body)
-    assert _ghosts(bare.read_text(), cli_flags) == [dead]
-    assert not _declares_itself_history(bare.read_text()), \
+    bare.write_text(body, encoding="utf-8")
+    assert _ghosts(bare.read_text(encoding="utf-8"), cli_flags) == [dead]
+    assert not _declares_itself_history(bare.read_text(encoding="utf-8")), \
         "BANNER matches a document with no banner in it"
 
     with_banner = tmp_path / "bannered.md"
     with_banner.write_text(
         "> Historical report, not documentation: flags below may be gone.\n\n"
-        + body)
-    assert _declares_itself_history(with_banner.read_text()), \
+        + body, encoding="utf-8")
+    assert _declares_itself_history(with_banner.read_text(encoding="utf-8")), \
         "BANNER does not match a history banner"

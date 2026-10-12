@@ -15,8 +15,8 @@ def _tree(tmp_path, **over):
             "reason": "rows are split on | and must keep exactly 6 cells"}
     decl.update(over)
     (tmp_path / ".killverbosity.json").write_text(
-        json.dumps({"freeze": decl}))
-    (tmp_path / "note.md").write_text(DOC)
+        json.dumps({"freeze": decl}), encoding="utf-8")
+    (tmp_path / "note.md").write_text(DOC, encoding="utf-8")
     return tmp_path / "note.md"
 
 
@@ -34,7 +34,7 @@ def test_the_table_caveat_stops_naming_rows_the_freeze_holds(tmp_path):
     r = run_tool("plan", _tree(tmp_path))
     assert "table row" not in r.stdout, r.stdout
 
-    (tmp_path / ".killverbosity.json").write_text("{}")
+    (tmp_path / ".killverbosity.json").write_text("{}", encoding="utf-8")
     r2 = run_tool("plan", tmp_path / "note.md")
     assert "2 table rows:" in r2.stdout, r2.stdout
 
@@ -49,7 +49,7 @@ def test_a_freeze_that_matches_no_line_says_so_loudly(tmp_path):
 
 def test_a_freeze_outside_its_paths_is_not_applied(tmp_path):
     (tmp_path / "other").mkdir()
-    (tmp_path / "other" / "note.md").write_text(DOC)
+    (tmp_path / "other" / "note.md").write_text(DOC, encoding="utf-8")
     _tree(tmp_path, paths=["state/*.md"])
     r = run_tool("plan", tmp_path / "other" / "note.md")
     assert r.returncode == 0, r.stderr
@@ -58,7 +58,7 @@ def test_a_freeze_outside_its_paths_is_not_applied(tmp_path):
 
 
 def test_a_malformed_freeze_names_the_half_that_is_wrong(tmp_path):
-    (tmp_path / "note.md").write_text(DOC)
+    (tmp_path / "note.md").write_text(DOC, encoding="utf-8")
     for decl, needle in (
             ({"reason": "x"}, "freeze.lines must be a non-empty list"),
             ({"lines": [], "reason": "x"}, "freeze.lines must be a non-empty"),
@@ -68,7 +68,7 @@ def test_a_malformed_freeze_names_the_half_that_is_wrong(tmp_path):
              "keys this build does not know"),
             ("a sentence", "freeze must be an object")):
         (tmp_path / ".killverbosity.json").write_text(
-            json.dumps({"freeze": decl}))
+            json.dumps({"freeze": decl}), encoding="utf-8")
         r = run_tool("plan", tmp_path / "note.md")
         assert r.returncode == 2, (decl, r.stderr)
         assert needle in r.stderr, (decl, r.stderr)
@@ -77,7 +77,7 @@ def test_a_malformed_freeze_names_the_half_that_is_wrong(tmp_path):
 
 def _pair(tmp_path, edited_doc):
     _tree(tmp_path)
-    (tmp_path / "note.kv.md").write_text(edited_doc)
+    (tmp_path / "note.kv.md").write_text(edited_doc, encoding="utf-8")
     return tmp_path / "note.md", tmp_path / "note.kv.md"
 
 
@@ -113,7 +113,7 @@ def test_accept_refuses_a_frozen_row_that_changed(tmp_path):
     r = run_tool("accept", src, out)
     assert r.returncode != 0, r.stdout + r.stderr
     assert "FROZEN LINES CHANGED" in r.stdout, r.stdout
-    assert src.read_text() == DOC, "accept replaced the file it refused"
+    assert src.read_text(encoding="utf-8") == DOC, "accept replaced the file it refused"
 
 
 def test_accept_still_takes_a_run_whose_frozen_rows_are_intact(tmp_path):
@@ -123,7 +123,7 @@ def test_accept_still_takes_a_run_whose_frozen_rows_are_intact(tmp_path):
     write_run_record(out, agent="codex", incomplete=[])
     r = run_tool("accept", src, out)
     assert "FROZEN LINES CHANGED" not in r.stdout, r.stdout
-    assert src.read_text() == ok, (r.returncode, r.stdout, r.stderr)
+    assert src.read_text(encoding="utf-8") == ok, (r.returncode, r.stdout, r.stderr)
 
 
 
@@ -155,16 +155,16 @@ def test_a_frozen_line_is_not_scanned_for_shapes(tmp_path):
     """`blank_frozen`, on a frozen line that is NOT a table row."""
     verbose = ("Falsifier: the design is solid and the approach is robust, "
                "which is a very good outcome.\n")
-    (tmp_path / "note.md").write_text("# Title\n\n" + verbose)
+    (tmp_path / "note.md").write_text("# Title\n\n" + verbose, encoding="utf-8")
 
-    (tmp_path / ".killverbosity.json").write_text("{}")
+    (tmp_path / ".killverbosity.json").write_text("{}", encoding="utf-8")
     loud = run_tool("plan", tmp_path / "note.md")
     assert "shapes: none" not in loud.stdout, loud.stdout
 
     (tmp_path / ".killverbosity.json").write_text(json.dumps({"freeze": {
         "lines": [r"^Falsifier:"],
         "reason": "read by a bare startswith, so bolding the key un-declares "
-                  "the field"}}))
+                  "the field"}}), encoding="utf-8")
     quiet = run_tool("plan", tmp_path / "note.md")
     assert quiet.returncode == 0, quiet.stderr
     assert "frozen: 1 of " in quiet.stderr, quiet.stderr
@@ -175,14 +175,14 @@ def test_a_frozen_line_is_not_scanned_for_shapes(tmp_path):
 
 def test_the_declaration_skill_md_prints_is_the_one_that_runs(tmp_path):
     """The documented example, typed."""
-    md = (REPO / "SKILL.md").read_text()
+    md = (REPO / "SKILL.md").read_text(encoding="utf-8")
     block = md.split("### `freeze`: when the hazard is a line")[1]
     decl = block.split("```json")[1].split("```")[0]
     json.loads(decl)
-    (tmp_path / ".killverbosity.json").write_text(decl)
+    (tmp_path / ".killverbosity.json").write_text(decl, encoding="utf-8")
     doc = tmp_path / "status.md"
     doc.write_text("# T\n\n## Section\n\nsome prose here, quite verbose.\n\n"
-                   "| a | b |\n|---|---|\n| 1 | 2 |\n")
+                   "| a | b |\n|---|---|\n| 1 | 2 |\n", encoding="utf-8")
     r = run_tool("plan", doc)
     assert r.returncode == 0, r.stderr
     assert "frozen: 4 of " in r.stderr, r.stderr
@@ -193,7 +193,7 @@ def test_verify_finds_the_declaration_when_the_original_was_copied_away(
     """README's own documented invocation found no config at all."""
     orig, edited = _pair(tmp_path, DOC.replace(ROW, REWORDED))
     away = tmp_path.parent / "copied-away-orig.md"
-    away.write_text(orig.read_text())
+    away.write_text(orig.read_text(encoding="utf-8"), encoding="utf-8")
     r = run_tool("verify", away, edited)
     assert r.returncode == 1, r.stdout + r.stderr
     assert "FROZEN LINES CHANGED" in r.stdout, r.stdout
@@ -204,8 +204,8 @@ def test_a_declaration_beside_neither_file_is_still_not_invented(tmp_path):
     _pair(tmp_path, DOC.replace(ROW, REWORDED))
     away = tmp_path.parent / f"{tmp_path.name}-elsewhere"
     away.mkdir(exist_ok=True)
-    (away / "note.md").write_text(DOC)
-    (away / "note.kv.md").write_text(DOC.replace(ROW, REWORDED))
+    (away / "note.md").write_text(DOC, encoding="utf-8")
+    (away / "note.kv.md").write_text(DOC.replace(ROW, REWORDED), encoding="utf-8")
     r = run_tool("verify", away / "note.md", away / "note.kv.md")
     assert "FROZEN LINES CHANGED" not in r.stdout, r.stdout
 
@@ -218,8 +218,8 @@ def test_verify_names_the_config_it_used(tmp_path):
 
 
 def test_verify_says_so_when_no_config_governs_either_file(tmp_path):
-    (tmp_path / "note.md").write_text(DOC)
-    (tmp_path / "note.kv.md").write_text(DOC)
+    (tmp_path / "note.md").write_text(DOC, encoding="utf-8")
+    (tmp_path / "note.kv.md").write_text(DOC, encoding="utf-8")
     r = run_tool("verify", tmp_path / "note.md", tmp_path / "note.kv.md")
     assert "config: none declared" in r.stderr, r.stderr
     assert str(tmp_path) in r.stderr, r.stderr
@@ -245,9 +245,9 @@ def test_run_names_the_config_at_its_own_inner_call(kv, monkeypatch, tmp_path,
 def test_accept_states_the_zero_when_nothing_governs_the_pair(tmp_path):
     """The `searched` half, which the two tests above cannot reach."""
     src = tmp_path / "note.md"
-    src.write_text(DOC)
+    src.write_text(DOC, encoding="utf-8")
     out = tmp_path / "note.kv.md"
-    out.write_text(DOC)
+    out.write_text(DOC, encoding="utf-8")
     write_run_record(out, agent="codex", incomplete=[])
     r = run_tool("accept", src, out)
     assert "config: none declared" in r.stderr, r.stderr
@@ -257,7 +257,7 @@ def test_accept_states_the_zero_when_nothing_governs_the_pair(tmp_path):
 def test_run_states_the_zero_when_nothing_governs_the_file(kv, monkeypatch,
                                                            tmp_path, capsys):
     doc = tmp_path / "note.md"
-    doc.write_text(DOC)
+    doc.write_text(DOC, encoding="utf-8")
     run_canned(kv, monkeypatch, doc, tmp_path / "out.md", lambda *_: [])
     said = capsys.readouterr()
     assert "config: none declared" in said.err, said.err
@@ -267,7 +267,7 @@ def test_run_states_the_zero_when_nothing_governs_the_file(kv, monkeypatch,
 
 def test_plan_states_the_zero_when_nothing_governs_the_file(tmp_path):
     doc = tmp_path / "note.md"
-    doc.write_text(DOC)
+    doc.write_text(DOC, encoding="utf-8")
     r = run_tool("plan", doc)
     assert "config: none declared" in r.stderr, r.stderr
     assert str(tmp_path) in r.stderr, r.stderr
@@ -282,7 +282,7 @@ def test_plan_names_the_config_it_used(tmp_path):
 
 def test_dry_run_states_the_zero_before_anything_is_dispatched(tmp_path):
     doc = tmp_path / "note.md"
-    doc.write_text(DOC)
+    doc.write_text(DOC, encoding="utf-8")
     r = run_tool("run", doc, "--dry-run")
     assert "config: none declared" in r.stderr, r.stderr
     assert str(tmp_path) in r.stderr, r.stderr

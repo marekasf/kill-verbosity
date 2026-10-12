@@ -53,8 +53,8 @@ def test_an_ordinary_sentence_is_not_lifted(kv, sentence):
 def test_a_dropped_ordering_rule_is_printed_in_the_read_first_list(tmp_path):
     """End to end, on the reported pair: the Note deleted and nothing else."""
     doc, out = tmp_path / "checklist.md", tmp_path / "checklist.kv.md"
-    doc.write_text(CHECKLIST)
-    out.write_text(CHECKLIST.replace(NOTE + "\n", ""))
+    doc.write_text(CHECKLIST, encoding="utf-8")
+    out.write_text(CHECKLIST.replace(NOTE + "\n", ""), encoding="utf-8")
 
     r = run_tool("verify", doc, out)
     text = r.stdout + r.stderr

@@ -23,7 +23,7 @@ def test_a_refused_edit_quotes_the_source_not_the_mask(tmp_path, kv,
                                                        monkeypatch, capsys):
     """The refusal names the sentence, with its quotations still in it."""
     doc = tmp_path / "m.md"
-    doc.write_text(MASKDOC)
+    doc.write_text(MASKDOC, encoding="utf-8")
     out = tmp_path / "m.kv.md"
 
     def reply(who, lo, hi):
@@ -43,7 +43,7 @@ def test_a_refused_edit_quotes_the_source_not_the_mask(tmp_path, kv,
 def test_the_plan_hit_list_quotes_the_source_not_the_mask(tmp_path):
     """`plan` prints the same sentences and had the same leak."""
     doc = tmp_path / "m.md"
-    doc.write_text(MASKDOC)
+    doc.write_text(MASKDOC, encoding="utf-8")
 
     printed = run_tool("plan", doc).stdout
 
@@ -80,7 +80,7 @@ their attention.
 def test_a_wrapped_file_says_what_the_fold_will_count(tmp_path):
     """`plan` counts the lines as written and names the number `run` will get."""
     doc = tmp_path / "w.md"
-    doc.write_text(WRAPPED)
+    doc.write_text(WRAPPED, encoding="utf-8")
 
     plan = run_tool("plan", doc).stdout
 
@@ -93,11 +93,11 @@ def test_a_wrapped_file_says_what_the_fold_will_count(tmp_path):
 def test_one_run_prints_one_before_count(tmp_path):
     """The header and the footer count the same file the same way."""
     doc = tmp_path / "w.md"
-    doc.write_text(WRAPPED)
+    doc.write_text(WRAPPED, encoding="utf-8")
     edited = tmp_path / "w.kv.md"
     edited.write_text(WRAPPED.replace("nine samples\nand bought very little "
                                       "in the end, so", "nine samples\nand "
-                                      "bought little, so"))
+                                      "bought little, so"), encoding="utf-8")
 
     plan = run_tool("plan", doc).stdout
     checked = run_tool("verify", doc, edited).stdout
@@ -112,7 +112,7 @@ def test_one_run_prints_one_before_count(tmp_path):
 
 def test_a_file_that_does_not_wrap_gets_no_fold_note(tmp_path):
     doc = tmp_path / "flat.md"
-    doc.write_text("# Flat\n\n## Body\n\nOne short line per paragraph here.\n")
+    doc.write_text("# Flat\n\n## Body\n\nOne short line per paragraph here.\n", encoding="utf-8")
 
     assert "hard-wraps" not in run_tool("plan", doc).stdout
 
@@ -202,7 +202,7 @@ def test_a_summary_pointer_follows_the_rename(tmp_path, kv, monkeypatch,
                                               capsys):
     """`structure` renames a heading, `summary` points at it, both land."""
     doc = tmp_path / "p.md"
-    doc.write_text(POINTDOC)
+    doc.write_text(POINTDOC, encoding="utf-8")
     out = tmp_path / "p.kv.md"
 
     def reply(who, lo, hi):
@@ -220,7 +220,7 @@ def test_a_summary_pointer_follows_the_rename(tmp_path, kv, monkeypatch,
 
     run_canned(kv, monkeypatch, doc, out, reply)
     printed = "".join(capsys.readouterr())
-    written = out.read_text() if out.exists() else ""
+    written = out.read_text(encoding="utf-8") if out.exists() else ""
 
     assert "sent after a heading" in printed, printed
     assert "(Some report counts)" in written, written

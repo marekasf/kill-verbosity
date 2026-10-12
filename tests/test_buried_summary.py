@@ -44,7 +44,7 @@ def doc(tmp_path):
     for i in range(20):
         out += [f"## Section {i + 1}", "", _para(i), ""]
     p = tmp_path / "queue.md"
-    p.write_text("\n".join(out))
+    p.write_text("\n".join(out), encoding="utf-8")
     return p
 
 
@@ -85,7 +85,7 @@ def test_structure_can_unbury_the_summary(kv, monkeypatch, doc, tmp_path,
     out = tmp_path / "o.md"
     _run(kv, monkeypatch, doc, out, _unbury(SECTION_1))
     printed = capsys.readouterr().out
-    head = out.read_text().split("\n")
+    head = out.read_text(encoding="utf-8").split("\n")
 
     assert "2 of 2 edits applied" in printed, printed[-1500:]
     assert head[2] == "## Summary", head[:6]

@@ -21,7 +21,7 @@ SENTENCE = ("It is worth noting that the deployment check is missing here and "
 def _wrapped(tmp_path, paragraphs=6, width=72):
     p = tmp_path / "w.md"
     p.write_text("# Handbook\n\n" + "\n\n".join(
-        textwrap.fill(SENTENCE, width=width) for _ in range(paragraphs)) + "\n")
+        textwrap.fill(SENTENCE, width=width) for _ in range(paragraphs)) + "\n", encoding="utf-8")
     return p
 
 
@@ -33,7 +33,7 @@ def _reported(path):
 
 
 def _truth(path):
-    src = path.read_text().rstrip("\n").split("\n")
+    src = path.read_text(encoding="utf-8").rstrip("\n").split("\n")
     _lines, spans = kv.unwrap_source(src)
     folded = [s for s in spans if s[1] > s[0]]
     return sum(b - a + 1 for a, b in folded), len(folded)
@@ -65,7 +65,7 @@ def test_a_file_with_nothing_to_fold_says_so(tmp_path):
     """The boundary, and the case that used to be silent."""
     p = tmp_path / "s.md"
     p.write_text("# Doc\n\n" + "\n\n".join(
-        f"{SENTENCE} Paragraph {n}." for n in range(12)) + "\n")
+        f"{SENTENCE} Paragraph {n}." for n in range(12)) + "\n", encoding="utf-8")
 
     out = run_tool("run", p, "--dry-run")
 
@@ -79,7 +79,7 @@ def test_a_run_says_which_way_the_fold_went_either_way(tmp_path):
     wrapped = _wrapped(tmp_path)
     flat = tmp_path / "flat.md"
     flat.write_text("# Doc\n\n" + "\n\n".join(
-        f"{SENTENCE} Paragraph {n}." for n in range(12)) + "\n")
+        f"{SENTENCE} Paragraph {n}." for n in range(12)) + "\n", encoding="utf-8")
 
     said = [(("folded" in run_tool("run", p, "--dry-run").stderr),
              ("no wrap margin found" in run_tool("run", p, "--dry-run").stderr))
@@ -100,7 +100,7 @@ def test_a_run_of_one_line_list_items_does_not_defeat_a_real_margin(tmp_path):
         for i in range(5))
     p.write_text("# Handbook\n\n" + "\n\n".join(
         textwrap.fill(f"{SENTENCE} Paragraph {n}.", 78) for n in range(8))
-        + "\n\n" + items + "\n")
+        + "\n\n" + items + "\n", encoding="utf-8")
 
     out = run_tool("run", p, "--dry-run")
 
@@ -118,7 +118,7 @@ def test_the_counts_never_exceed_the_file(tmp_path):
     the thing it counts. Lines folded cannot exceed the file's lines, and
     paragraphs cannot exceed the lines they were folded from."""
     path = _wrapped(tmp_path, paragraphs=4)
-    lines_in_file = len(path.read_text().rstrip("\n").split("\n"))
+    lines_in_file = len(path.read_text(encoding="utf-8").rstrip("\n").split("\n"))
 
     folded_lines, paragraphs = _reported(path)
 

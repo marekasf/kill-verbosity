@@ -49,7 +49,7 @@ def _dry_run(kv, monkeypatch, path):
 
 def test_low_yield_warns_in_plan_and_dry_run(kv, monkeypatch, tmp_path):
     p = tmp_path / "log.md"
-    p.write_text(LOW)
+    p.write_text(LOW, encoding="utf-8")
     r = run_tool("plan", p)
     assert r.returncode == 0, (r.returncode, r.stdout, r.stderr)
     line = _yield_line(r.stdout)
@@ -69,7 +69,7 @@ def test_low_yield_warns_in_plan_and_dry_run(kv, monkeypatch, tmp_path):
 
 def test_high_yield_does_not_warn(kv, monkeypatch, tmp_path):
     p = tmp_path / "log.md"
-    p.write_text(HIGH)
+    p.write_text(HIGH, encoding="utf-8")
     r = run_tool("plan", p)
     assert r.returncode == 0, (r.returncode, r.stdout, r.stderr)
     line = _yield_line(r.stdout)
@@ -84,7 +84,7 @@ def test_high_yield_does_not_warn(kv, monkeypatch, tmp_path):
 
 def test_the_number_is_at_least_the_words_on_the_flagged_lines(kv, tmp_path):
     p = tmp_path / "log.md"
-    p.write_text(LOW)
+    p.write_text(LOW, encoding="utf-8")
     at, of, _pct = _numbers(_yield_line(run_tool("plan", p).stdout))
     assert at >= len(FRAME.split()), (at, FRAME)
     assert of == kv.word_count(LOW), (of, kv.word_count(LOW))
@@ -99,7 +99,7 @@ def test_a_run_that_deletes_every_flagged_line_removes_no_more_than_the_bound(
 
     doc = HIGH + "\n" + FILLER + "\n"
     p = tmp_path / "log.md"
-    p.write_text(doc)
+    p.write_text(doc, encoding="utf-8")
     at, _of, _pct = _numbers(_yield_line(run_tool("plan", p).stdout))
     src = doc.split("\n")
 
@@ -112,6 +112,6 @@ def test_a_run_that_deletes_every_flagged_line_removes_no_more_than_the_bound(
 
     out = tmp_path / "log.kv.md"
     run_canned(kv, monkeypatch, p, out, reply)
-    removed = kv.word_count(doc) - kv.word_count(out.read_text())
+    removed = kv.word_count(doc) - kv.word_count(out.read_text(encoding="utf-8"))
     assert removed > 0, "no edit landed, so this compares the bound with nothing"
     assert removed <= at, (removed, at)

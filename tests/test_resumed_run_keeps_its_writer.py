@@ -32,7 +32,7 @@ def test_a_resumed_run_still_names_the_vendor_that_wrote_the_banked_jobs(
     monkeypatch.setattr(kv, "_INSTALLED_OVERRIDE",
                         {"agy": True, "codex": True})
     src, out = tmp_path / "doc.md", tmp_path / "out.md"
-    src.write_text(DOC + "\n")
+    src.write_text(DOC + "\n", encoding="utf-8")
     first = []
 
     def substituted(prompt, agent, timeout, say=None, avoid=(), answered=None):
@@ -53,7 +53,7 @@ def test_a_resumed_run_still_names_the_vendor_that_wrote_the_banked_jobs(
     _main(kv, monkeypatch, src, out, codex)
     said = capsys.readouterr()
     assert "resuming:" in said.err, said.err[-800:]
-    record = json.loads(kv.run_record_path(out).read_text())
+    record = json.loads(kv.run_record_path(out).read_text(encoding="utf-8"))
     assert GOOGLE in kv.answering_backends(record), record["job_spans"]
 
     called = []

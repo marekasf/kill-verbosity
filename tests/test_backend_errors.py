@@ -18,7 +18,7 @@ DOC = "\n".join(
 def test_weak_margin_is_counted_in_the_notes_tally_not_only_stderr(
         kv, monkeypatch, tmp_path, capsys):
     src = tmp_path / "doc.md"
-    src.write_text(DOC + "\n")
+    src.write_text(DOC + "\n", encoding="utf-8")
 
     def launcher(prompt, agent, timeout, say=None, avoid=()):
         return json.dumps({"edits": [], "notes": []}), None
@@ -65,7 +65,7 @@ def test_launch_failure_is_marked_and_not_retried_on_same_backend(
     monkeypatch.undo()
 
     src = tmp_path / "doc.md"
-    src.write_text(DOC + "\n")
+    src.write_text(DOC + "\n", encoding="utf-8")
     calls = []
 
     def launcher(prompt, agent, timeout, say=None, avoid=()):

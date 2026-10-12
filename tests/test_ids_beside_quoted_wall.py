@@ -51,7 +51,7 @@ def _rows(out):
 
 def test_plan_lists_ids_beside_the_wall_they_sit_next_to(tmp_path):
     p = tmp_path / "fx2.md"
-    p.write_text(FIXTURE)
+    p.write_text(FIXTURE, encoding="utf-8")
     r = run_tool("plan", p)
     assert r.returncode == 0, (r.returncode, r.stdout, r.stderr)
 
@@ -74,7 +74,7 @@ def test_plan_lists_ids_beside_the_wall_they_sit_next_to(tmp_path):
 def test_no_id_hit_where_there_is_no_id(tmp_path):
     """Negative control: line 10 names no decision and gets no hit."""
     p = tmp_path / "fx2.md"
-    p.write_text(FIXTURE)
+    p.write_text(FIXTURE, encoding="utf-8")
     r = run_tool("plan", p)
     assert r.returncode == 0, (r.returncode, r.stdout, r.stderr)
 

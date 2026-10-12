@@ -17,7 +17,7 @@ def test_baseline_follows_the_output_directory_not_the_inputs(tmp_path):
     out_dir = tmp_path / "out_dir"
     out_dir.mkdir()
     src = input_dir / "note.md"
-    src.write_text(DOC)
+    src.write_text(DOC, encoding="utf-8")
     before = {p.name for p in input_dir.iterdir()}
 
     out = out_dir / "note.kv.md"
@@ -33,7 +33,7 @@ def test_baseline_follows_the_output_directory_not_the_inputs(tmp_path):
     baseline = out_dir / "note.kv.orig.md"
     assert baseline.is_file(), (
         "the baseline must follow -o's directory and name, not the input's")
-    assert baseline.read_text() == DOC
+    assert baseline.read_text(encoding="utf-8") == DOC
 
 
 def test_two_inputs_of_the_same_name_do_not_collide_on_one_baseline(tmp_path):
@@ -53,8 +53,8 @@ def test_two_inputs_of_the_same_name_do_not_collide_on_one_baseline(tmp_path):
 
     src_a = dir_a / "doc.md"
     src_b = dir_b / "doc.md"
-    src_a.write_text(DOC)
-    src_b.write_text(DOC.replace("considerably longer", "rather longer"))
+    src_a.write_text(DOC, encoding="utf-8")
+    src_b.write_text(DOC.replace("considerably longer", "rather longer"), encoding="utf-8")
 
     out_a = out_dir / "a.kv.md"
     out_b = out_dir / "b.kv.md"
@@ -66,9 +66,9 @@ def test_two_inputs_of_the_same_name_do_not_collide_on_one_baseline(tmp_path):
     base_a, base_b = out_dir / "a.kv.orig.md", out_dir / "b.kv.orig.md"
     assert base_a.is_file(), "run A wrote no baseline of its own"
     assert base_b.is_file(), "run B wrote no baseline of its own"
-    assert base_a.read_text() == src_a.read_text(), \
+    assert base_a.read_text(encoding="utf-8") == src_a.read_text(encoding="utf-8"), \
         "run A's baseline was overwritten or never held its own text"
-    assert base_b.read_text() == src_b.read_text(), \
+    assert base_b.read_text(encoding="utf-8") == src_b.read_text(encoding="utf-8"), \
         "run B's baseline is not run B's own original text -- the collision"
 
     r = run_tool("accept", src_b, out_b, "--dry-run", force=True)
@@ -87,7 +87,7 @@ def test_accept_still_finds_the_relocated_baseline(tmp_path):
     out_dir = tmp_path / "out_dir"
     out_dir.mkdir()
     src = input_dir / "note.md"
-    src.write_text(DOC)
+    src.write_text(DOC, encoding="utf-8")
     out = out_dir / "note.kv.md"
     run_tool("run", src, "-o", out, "--no-agents")
 

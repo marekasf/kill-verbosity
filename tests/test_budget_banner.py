@@ -24,10 +24,10 @@ def plan(tmp_path, *flags):
     case that must stay SILENT passed for that reason rather than for the one
     its name gives -- a vacuous pass that reads exactly like a held one."""
     doc = tmp_path / "report.md"
-    doc.write_text(DOC)
+    doc.write_text(DOC, encoding="utf-8")
     got = subprocess.run(
         [sys.executable, str(KV), "run", str(doc), "--dry-run", *flags],
-        capture_output=True, text=True, cwd=tmp_path)
+        capture_output=True, text=True, cwd=tmp_path, encoding="utf-8")
     assert got.returncode == 0, got.stderr[-800:]
     return got
 

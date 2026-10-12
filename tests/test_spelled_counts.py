@@ -31,7 +31,7 @@ def test_a_spelled_number_is_counted(word: str, tmp_path: Path) -> None:
     doc = tmp_path / "one.md"
     doc.write_text(
         "Report\n======\n\n"
-        f"The retry ran {word} times before the queue drained and it finished.\n")
+        f"The retry ran {word} times before the queue drained and it finished.\n", encoding="utf-8")
 
     result = run_tool("plan", str(doc), "--json")
     assert result.returncode == 0, result.stderr

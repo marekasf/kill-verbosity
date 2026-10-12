@@ -69,9 +69,9 @@ def test_a_hard_block_does_not_tell_the_reader_it_is_not_a_failure(kv, tmp_path)
     orig = tmp_path / "o.md"
     edit = tmp_path / "e.md"
     orig.write_text("# Runner\n\nThe runner reads `config_alpha` at startup "
-                    "and refuses when it is absent.\n")
+                    "and refuses when it is absent.\n", encoding="utf-8")
     edit.write_text("# Runner\n\nThe runner reads `config_beta` at startup "
-                    "and refuses when it is absent.\n")
+                    "and refuses when it is absent.\n", encoding="utf-8")
 
     rc, out = _verify(kv, orig, edit)
 
@@ -95,10 +95,10 @@ def test_the_advisory_block_still_says_it_is_not_a_failure(kv, tmp_path):
     """The control. Without it the assertion above is a ban on the phrase."""
     orig = tmp_path / "o.md"
     edit = tmp_path / "e.md"
-    orig.write_text("# Notes\n\nShort line here.\n")
+    orig.write_text("# Notes\n\nShort line here.\n", encoding="utf-8")
     long_one = " ".join(["alpha bravo charlie delta echo foxtrot golf hotel "
                          "india juliet"] * 6)
-    edit.write_text("# Notes\n\nShort line here.\n\n%s.\n" % long_one)
+    edit.write_text("# Notes\n\nShort line here.\n\n%s.\n" % long_one, encoding="utf-8")
 
     rc, out = _verify(kv, orig, edit)
 

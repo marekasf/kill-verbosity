@@ -3148,7 +3148,7 @@ def specialist_prompt(name, doc_words=None):
                 f"no prompt at {p}. The specialist prompts live next to "
                 f"SKILL.md; reinstall the skill, or name the others in "
                 f"{PROJECT_FILE} to skip this one.")
-    text = f"{common.read_text()}\n\n{own.read_text()}"
+    text = f"{common.read_text(encoding='utf-8')}\n\n{own.read_text(encoding='utf-8')}"
     for key, fn in PROMPT_VALUES.items():
         text = text.replace("{{" + key + "}}", str(fn(doc_words)))
     left = sorted(set(re.findall(r"\{\{([A-Z_]+)\}\}", text)))
@@ -6702,7 +6702,7 @@ def cmd_run(args, launcher=None):
             print(f"  → {len(_who)} of them on: {_cause}")
 
     try:
-        _at_finish = source_fingerprint(src.read_text(errors="replace"))
+        _at_finish = source_fingerprint(src.read_text(errors="replace", encoding="utf-8"))
     except OSError as _e:
         _at_finish = None
         print(f"could not re-read {src.name} at the end of the run ({_e}), so "
@@ -7300,7 +7300,7 @@ def cmd_plan(args):
     if bad:
         print(f"kill-verbosity: {bad}", file=sys.stderr)
         return 2
-    text = Path(args.file).read_text(errors="replace")
+    text = Path(args.file).read_text(errors="replace", encoding="utf-8")
     prose, headings, tables, quotes = mask(text, Path(args.file).name)
     _src = text.split("\n")
     kv_frozen = report_freeze(args, _src)
@@ -7887,7 +7887,7 @@ def inbound_anchors(doc, heading):
         if p.resolve() == target:
             continue
         try:
-            text = p.read_text()
+            text = p.read_text(encoding="utf-8")
         except (OSError, UnicodeDecodeError):
             continue
         for m in re.finditer(r"\]\(\s*(<[^>]*>|[^)\s]+)", text):
@@ -8670,7 +8670,7 @@ def _cmd_verify(args):
     if _stale:
         print("kill-verbosity: " + _stale, file=sys.stderr)
 
-    orig, new = op.read_text(errors="replace"), ep.read_text(errors="replace")
+    orig, new = op.read_text(errors="replace", encoding="utf-8"), ep.read_text(errors="replace", encoding="utf-8")
     record = read_run_record(ep)
     o_prose, o_heads, o_tables, o_quotes = mask(orig, op.name)
     n_prose, n_heads, n_tables, n_quotes = mask(new, ep.name)
@@ -10318,7 +10318,7 @@ def cmd_accept(args):
         forced_past.append(f"{why} {run_record_path(out).name}, so nothing "
                            f"knows whether that run finished")
     was = record.get("source")
-    if was and was != source_fingerprint(src.read_text(errors="replace")):
+    if was and was != source_fingerprint(src.read_text(errors="replace", encoding="utf-8")):
         if not forced:
             print(f"\nnot accepted: {src.name} changed after the run that "
                   f"wrote {out.name}, so accepting would throw those changes "
@@ -10720,7 +10720,7 @@ def cmd_crosscheck(args):
     _stale = rerun.moved_note(
         real_orig.name, real_target.name, real_orig.stat().st_mtime,
         real_target.stat().st_mtime, record.get("source"),
-        source_fingerprint(real_orig.read_text(errors="replace"))
+        source_fingerprint(real_orig.read_text(errors="replace", encoding="utf-8"))
     ) if real_orig else None
     if _stale:
         prompt += (
@@ -10735,7 +10735,7 @@ def cmd_crosscheck(args):
         kind = PROFILE_GENRE
     if kind is None:
         try:
-            whole = real_target.read_text(errors="replace")
+            whole = real_target.read_text(errors="replace", encoding="utf-8")
             kind = detect_genre(whole.split("\n"),
                                 mask(whole, real_target.name)[1])
         except (OSError, ValueError):
@@ -11760,18 +11760,18 @@ def cmd_selftest(_):
         assert (SPECIALIST_DIR / f"{name}.md").is_file(), \
             f"no prompt for specialist {name!r} at {SPECIALIST_DIR}"
     assert (SPECIALIST_DIR / "_common.md").is_file(), SPECIALIST_DIR
-    _skill_md = (SPECIALIST_DIR.parent / "SKILL.md").read_text()
+    _skill_md = (SPECIALIST_DIR.parent / "SKILL.md").read_text(encoding="utf-8")
     for _hand in ("code.md", "jargon-hunt.md"):
         assert (SPECIALIST_DIR / _hand).is_file(), \
             f"{_hand} is gone and SKILL.md still sends the reader to it"
         assert _hand in _skill_md, \
             f"SKILL.md no longer tells anyone {_hand} exists or how to run it"
     for _hand in ("code.md", "jargon-hunt.md"):
-        _t = (SPECIALIST_DIR / _hand).read_text()
+        _t = (SPECIALIST_DIR / _hand).read_text(encoding="utf-8")
         assert "{{" not in _t, \
             f"{_hand} asks for a value, and nothing ever substitutes it"
     _rows = dict(re.findall(r"^\|\s*`(\w+)`\s*\|\s*(\w+)\s*\|",
-                            (SPECIALIST_DIR.parent / "SKILL.md").read_text(),
+                            (SPECIALIST_DIR.parent / "SKILL.md").read_text(encoding="utf-8"),
                             re.M))
     for _name, (_scope, _) in SPECIALISTS.items():
         assert _rows.get(_name) == _scope, \
@@ -11791,7 +11791,7 @@ def cmd_selftest(_):
          f"table is the whole list")
     for _name in ("docs/user-guide.md", "SKILL.md"):
         _doc = HERE / _name
-        _quoted = re.search(r"selftest ok \(\d+ checks?\)", _doc.read_text())
+        _quoted = re.search(r"selftest ok \(\d+ checks?\)", _doc.read_text(encoding="utf-8"))
         assert not _quoted, \
             (f"{_name} quotes {_quoted.group(0)!r}; the count rises with "
              f"every case, so it is stale the next time one lands")
@@ -11815,7 +11815,7 @@ def cmd_selftest(_):
         _pf = Path(_td) / "p.md"
         _pf.write_text("\n".join(
             _plines + [" ".join(f"pad{i}x{j}" for j in range(30))
-                       for i in range(30)]) + "\n")
+                       for i in range(30)]) + "\n", encoding="utf-8")
         _args = build_parser().parse_args(["plan", str(_pf)])
         _out = io.StringIO()
         with contextlib.redirect_stdout(_out):
@@ -11845,7 +11845,7 @@ def cmd_selftest(_):
         _nest
     with tempfile.TemporaryDirectory() as _td:
         _sf = Path(_td) / "s.md"
-        _sf.write_text(_doc)
+        _sf.write_text(_doc, encoding="utf-8")
         _args = build_parser().parse_args(["plan", str(_sf)])
         _out = io.StringIO()
         with contextlib.redirect_stdout(_out):
@@ -11856,7 +11856,7 @@ def cmd_selftest(_):
     assert len(_rows) == 2 and "restates a summary" in _rows[1] \
         and "restates a summary" not in _rows[0], _rows
 
-    _readme = (HERE / "docs" / "user-guide.md").read_text()
+    _readme = (HERE / "docs" / "user-guide.md").read_text(encoding="utf-8")
     _shown = re.findall(r"<!--\s*kv:[^>]*-->", _readme)
     for _rx, _name in ((KEEP_MARK, "kv:keep"), (ALLOW_MARK, "kv:allow"),
                        (ALLOW_SHAPE_MARK, "kv:allow-shape")):
@@ -11865,7 +11865,7 @@ def cmd_selftest(_):
                       f"{_rx.pattern} accepts; it shows {_shown}")
 
     _named = set(re.search(r"kinds are detected: ([^.]+)\.",
-                           (SPECIALIST_DIR.parent / "SKILL.md").read_text())
+                           (SPECIALIST_DIR.parent / "SKILL.md").read_text(encoding="utf-8"))
                  .group(1).replace("and ", "").split(", "))
     assert _named == set(GENRES), \
         (f"SKILL.md names {sorted(_named)}, the code detects {sorted(GENRES)}")
@@ -12244,7 +12244,7 @@ def cmd_selftest(_):
         assert _bprod > _bt, (_bprod, _bt)
         assert f"raise --timeout to {_bprod}" in _wl and \
             f"lower --job-timeout to {_bt // _bwv}" in _wl, _wl
-        _brec = json.loads((_bw.dir / "doc.kv.md.kvrun").read_text())
+        _brec = json.loads((_bw.dir / "doc.kv.md.kvrun").read_text(encoding="utf-8"))
         assert (_brec["jobs_planned"], _brec["budget_floor"],
                 _brec["budget_seconds"]) == (_bj, _bprod, 50), _brec
     finally:
@@ -12257,7 +12257,7 @@ def cmd_selftest(_):
         assert "at a time:" in _bok.err and f"dispatches {_bj} job" in _bok.out, \
             ("the control never reached the dispatch, so its silence says "
              f"nothing: {_bok.err[-300:]!r}")
-        assert json.loads((_bok.dir / "doc.kv.md.kvrun").read_text())[
+        assert json.loads((_bok.dir / "doc.kv.md.kvrun").read_text(encoding="utf-8"))[
             "budget_floor"] == _bprod, "the control's matrix is not the same one"
     finally:
         shutil.rmtree(_bok.dir, ignore_errors=True)
@@ -12313,7 +12313,7 @@ def cmd_selftest(_):
             for _l in (9, 13)], "notes": []}), None
 
     def _fz_kept(run):
-        out = (run.dir / "doc.kv.md").read_text().split("\n")
+        out = (run.dir / "doc.kv.md").read_text(encoding="utf-8").split("\n")
         return sum(1 for i in range(1, 13)
                    if f"  rule {i} kept on its own line" in out)
 
@@ -12383,7 +12383,7 @@ def cmd_selftest(_):
     assert "paragraph wall" in SYNTHETIC
     assert "wall_paragraphs(prose)" in inspect.getsource(cmd_run), \
         "no chunk is ever scheduled for a paragraph wall"
-    assert "Paragraph walls" in (SPECIALIST_DIR / "prose.md").read_text(), \
+    assert "Paragraph walls" in (SPECIALIST_DIR / "prose.md").read_text(encoding="utf-8"), \
         "prose is flagged for a shape its own prompt does not name"
     assert "wall_paragraphs(prose)" in inspect.getsource(cmd_plan), \
         "plan hides a shape run dispatches"
@@ -13574,7 +13574,7 @@ def cmd_selftest(_):
     with tempfile.TemporaryDirectory() as _itd:
         _if = Path(_itd) / "i.md"
         _if.write_text(_inc_txt + "\n".join(
-            " ".join(f"q{i}w{j}" for j in range(12)) for i in range(30)) + "\n")
+            " ".join(f"q{i}w{j}" for j in range(12)) for i in range(30)) + "\n", encoding="utf-8")
         _ia = build_parser().parse_args(["plan", str(_if)])
         _ib = io.StringIO()
         with contextlib.redirect_stdout(_ib):
@@ -13676,7 +13676,7 @@ def cmd_selftest(_):
     with tempfile.TemporaryDirectory() as _td:
         _wf = Path(_td) / "w.md"
         _wf.write_text("# Wiring\n\n" + "\n".join(
-            " ".join(f"word{i}x{j}" for j in range(28)) for i in range(60)) + "\n")
+            " ".join(f"word{i}x{j}" for j in range(28)) for i in range(60)) + "\n", encoding="utf-8")
         _wa = build_parser().parse_args(["plan", str(_wf)])
         _wa.only, _wa.project = "noise,quotable,prose", "/p/.killverbosity.json"
         _wout = io.StringIO()
@@ -13957,7 +13957,7 @@ def cmd_selftest(_):
     assert edit_runs({"edits": [{"line": 5, "old": "a", "new": ""},
                                 {"line": 40, "old": "b", "new": "c"}]}) \
         == [{5}, {40}]
-    assert "group" in (SPECIALIST_DIR / "structure.md").read_text(), \
+    assert "group" in (SPECIALIST_DIR / "structure.md").read_text(encoding="utf-8"), \
         "nothing tells structure to group a dedup, so the field is never sent"
     assert edit_runs({**_dr, "specialist": "prose"}) == [{5}, {40, 41}], \
         edit_runs({**_dr, "specialist": "prose"})
@@ -13989,8 +13989,8 @@ def cmd_selftest(_):
         {"line": 20, "old": "a", "new": "b", "group": "two"},
         {"line": 60, "old": "a", "new": "b", "group": "two"}]}
     assert not any(r >= {5, 60} for r in edit_runs(_chain)), edit_runs(_chain)
-    _docs = ((SPECIALIST_DIR.parent / "SKILL.md").read_text()
-             + (HERE / "docs" / "user-guide.md").read_text())
+    _docs = ((SPECIALIST_DIR.parent / "SKILL.md").read_text(encoding="utf-8")
+             + (HERE / "docs" / "user-guide.md").read_text(encoding="utf-8"))
     for _cmd, _opts in sorted(cli_surface().items()):
         for _f in sorted(_opts):
             assert _f in _docs or _f == "--out", \
@@ -15003,12 +15003,12 @@ def cmd_selftest(_):
         "crosscheck no longer refuses a backend explicitly set to the model that wrote"
     with tempfile.TemporaryDirectory() as _d:
         _f = Path(_d) / "d.kv.md"
-        _f.write_text("# a\n\ntext\n")
-        (Path(_d) / "d.md").write_text("# a\n\ntext\n")
+        _f.write_text("# a\n\ntext\n", encoding="utf-8")
+        (Path(_d) / "d.md").write_text("# a\n\ntext\n", encoding="utf-8")
         _f.with_suffix(".md.kvrun").write_text(json.dumps(
             {"agent": "codex", "chat": False, "inserted": True,
              "summary_added": False, "swaps": [], "exempt": [], "incomplete": [],
-             "source": hashlib.sha256(b"# a\n\ntext\n").hexdigest()}))
+             "source": hashlib.sha256(b"# a\n\ntext\n").hexdigest()}), encoding="utf-8")
         _ns = argparse.Namespace(file=str(_f), original=str(Path(_d) / "d.md"),
                                  context=[], backend="codex", full=False)
 
@@ -15276,12 +15276,12 @@ def cmd_selftest(_):
 
     with tempfile.TemporaryDirectory() as _ad:
         _af = Path(_ad) / "d.kv.md"
-        _af.write_text("# a\n\ntext\n")
-        (Path(_ad) / "d.md").write_text("# a\n\ntext\n")
+        _af.write_text("# a\n\ntext\n", encoding="utf-8")
+        (Path(_ad) / "d.md").write_text("# a\n\ntext\n", encoding="utf-8")
         _af.with_suffix(".md.kvrun").write_text(json.dumps(
             {"agent": "agy", "chat": False, "inserted": True,
              "summary_added": False, "swaps": [], "exempt": [], "incomplete": [],
-             "source": hashlib.sha256(b"# a\n\ntext\n").hexdigest()}))
+             "source": hashlib.sha256(b"# a\n\ntext\n").hexdigest()}), encoding="utf-8")
         _ans = argparse.Namespace(file=str(_af), original=str(Path(_ad) / "d.md"),
                                   context=[], backend="claude", full=False)
 
@@ -15383,10 +15383,10 @@ def cmd_selftest(_):
     import tempfile as _tf
     _d = _tf.mkdtemp()
     _o, _n = Path(_d) / "o.md", Path(_d) / "n.md"
-    _o.write_text("# T\n\nAccuracy is 85% today.\n\nThe gate is 85% as well.\n")
+    _o.write_text("# T\n\nAccuracy is 85% today.\n\nThe gate is 85% as well.\n", encoding="utf-8")
 
     def _ver(edited, pardons):
-        _n.write_text(edited)
+        _n.write_text(edited, encoding="utf-8")
         buf = _io.StringIO()
         with _cl.redirect_stdout(buf):
             rc = cmd_verify(argparse.Namespace(
@@ -15398,7 +15398,7 @@ def cmd_selftest(_):
     _half = "# T\n\nAccuracy is good today.\n\nThe gate is 85% as well.\n"
     _side = run_record_path(_n)
     _buf = _io.StringIO()
-    _n.write_text(_gone)
+    _n.write_text(_gone, encoding="utf-8")
     write_run_record(_n, exempt=["85%", "85%"])
     with _cl.redirect_stdout(_buf):
         cmd_verify(argparse.Namespace(original=str(_o), edited=str(_n),
@@ -15408,10 +15408,10 @@ def cmd_selftest(_):
     _lo, _ln2 = Path(_d) / "lo.md", Path(_d) / "ln.md"
     _lo.write_text("# Doc\n\nSee the [changelog](CHANGELOG.md) and the "
                    "[decisions](decisions.md).\n\nThe importer reads "
-                   "`data/extracted/` every night.\n")
+                   "`data/extracted/` every night.\n", encoding="utf-8")
     _ln2.write_text("# Doc\n\nSee the [changelog](../tests/CHANGELOG.md) and "
                     "the [decisions](../.claude/decisions.md).\n\nThe importer "
-                    "reads `data/extracted/` every night.\n")
+                    "reads `data/extracted/` every night.\n", encoding="utf-8")
     _lbuf = _io.StringIO()
     with _cl.redirect_stdout(_lbuf):
         _lrc = cmd_verify(argparse.Namespace(original=str(_lo),
@@ -15431,9 +15431,9 @@ def cmd_selftest(_):
     _ro, _rn = Path(_d) / "ro.md", Path(_d) / "rn.md"
     _ro.write_text("# Doc\n\nSee the [changelog](CHANGELOG.md) for history.\n\n"
                    "Older entries are in the [changelog](CHANGELOG.md) too.\n\n"
-                   "The importer reads `data/extracted/` every night.\n")
-    _rn.write_text(_ro.read_text().replace(
-        "[changelog](CHANGELOG.md) for", "[changelog](../tests/CHANGELOG.md) for"))
+                   "The importer reads `data/extracted/` every night.\n", encoding="utf-8")
+    _rn.write_text(_ro.read_text(encoding="utf-8").replace(
+        "[changelog](CHANGELOG.md) for", "[changelog](../tests/CHANGELOG.md) for"), encoding="utf-8")
     _rbuf = _io.StringIO()
     with _cl.redirect_stdout(_rbuf):
         _rrc = cmd_verify(argparse.Namespace(original=str(_ro), edited=str(_rn),
@@ -15442,8 +15442,8 @@ def cmd_selftest(_):
     assert "links repointed" in _rout and "../tests/CHANGELOG.md" in _rout, _rout
     assert "A pass does not add facts" not in _rout and _rrc == 0, (_rrc, _rout)
     _rn3 = Path(_d) / "rn3.md"
-    _rn3.write_text(_ro.read_text().replace(
-        "every night.", "every night, and mirrors it to ../tests/CHANGELOG.md."))
+    _rn3.write_text(_ro.read_text(encoding="utf-8").replace(
+        "every night.", "every night, and mirrors it to ../tests/CHANGELOG.md."), encoding="utf-8")
     _r3buf = _io.StringIO()
     with _cl.redirect_stdout(_r3buf):
         cmd_verify(argparse.Namespace(original=str(_ro), edited=str(_rn3),
@@ -15452,8 +15452,8 @@ def cmd_selftest(_):
         and "TOKENS ADDED" in _r3buf.getvalue(), _r3buf.getvalue()
 
     _rn2 = Path(_d) / "rn2.md"
-    _rn2.write_text(_ro.read_text().replace(
-        "[changelog](CHANGELOG.md) for", "[changelog](../tests/HISTORY.md) for"))
+    _rn2.write_text(_ro.read_text(encoding="utf-8").replace(
+        "[changelog](CHANGELOG.md) for", "[changelog](../tests/HISTORY.md) for"), encoding="utf-8")
     _r2buf = _io.StringIO()
     with _cl.redirect_stdout(_r2buf):
         cmd_verify(argparse.Namespace(original=str(_ro), edited=str(_rn2),
@@ -15461,8 +15461,8 @@ def cmd_selftest(_):
     assert "links repointed" not in _r2buf.getvalue(), _r2buf.getvalue()
 
     _ln3 = Path(_d) / "ln3.md"
-    _ln3.write_text(_lo.read_text().replace(
-        "every night.", "and `data/staging/notes.md` every night."))
+    _ln3.write_text(_lo.read_text(encoding="utf-8").replace(
+        "every night.", "and `data/staging/notes.md` every night."), encoding="utf-8")
     _abuf = _io.StringIO()
     with _cl.redirect_stdout(_abuf):
         cmd_verify(argparse.Namespace(original=str(_lo), edited=str(_ln3),
@@ -15471,8 +15471,8 @@ def cmd_selftest(_):
 
     _bl, _wp = Path(_d) / "bl.md", Path(_d) / "wp.md"
     _bl.write_text("# N\n\nThe room was warm and the window faced the garden.\n"
-                   "Someone brought biscuits for the table.\n")
-    _wp.write_text("# N\n")
+                   "Someone brought biscuits for the table.\n", encoding="utf-8")
+    _wp.write_text("# N\n", encoding="utf-8")
     _wbuf = _io.StringIO()
     with _cl.redirect_stdout(_wbuf):
         _wrc = cmd_verify(argparse.Namespace(original=str(_bl), edited=str(_wp),
@@ -15485,9 +15485,9 @@ def cmd_selftest(_):
         "Merged code and a closed problem are different things here.\n"
         "It is worth noting that the biscuits were on the table.\n"
         "Approving a spec early is cheaper than fixing code late.\n"
-        "In order to proceed, the committee reviewed the agenda again.\n")
+        "In order to proceed, the committee reviewed the agenda again.\n", encoding="utf-8")
     _spe.write_text("# N\n\nThe room was warm and the window faced the "
-                    "garden.\n")
+                    "garden.\n", encoding="utf-8")
     _spbuf = _io.StringIO()
     with _cl.redirect_stdout(_spbuf):
         cmd_verify(argparse.Namespace(original=str(_sp), edited=str(_spe),
@@ -15514,7 +15514,7 @@ def cmd_selftest(_):
         f"a sentence carrying the point was not promoted:\n{_spout}"
     assert "the rest, worth reading first" in _spout, \
         f"the second list printed with no heading:\n{_spout}"
-    _wp.write_text("# N\n\nThe room was warm and the window faced the garden.\n")
+    _wp.write_text("# N\n\nThe room was warm and the window faced the garden.\n", encoding="utf-8")
     _tbuf = _io.StringIO()
     with _cl.redirect_stdout(_tbuf):
         _trc = cmd_verify(argparse.Namespace(original=str(_bl), edited=str(_wp),
@@ -15535,8 +15535,8 @@ def cmd_selftest(_):
     assert _ver(_half, ["85%"]) == (0, False), _ver(_half, ["85%"])
     assert _ver(_gone, ["85%", "85%"]) == (0, False), _ver(_gone, ["85%", "85%"])
     _o.write_text("# T\n\n| Check | Ticket |\n|---|---|\n"
-                  "| fence gate | BIQ-9902 |\n\nThe `pipeline` step runs.\n")
-    _n.write_text("# T\n\n| Check | Ticket |\n|---|---|\n\nThe step runs.\n")
+                  "| fence gate | BIQ-9902 |\n\nThe `pipeline` step runs.\n", encoding="utf-8")
+    _n.write_text("# T\n\n| Check | Ticket |\n|---|---|\n\nThe step runs.\n", encoding="utf-8")
     _tb = _io.StringIO()
     with _cl.redirect_stdout(_tb):
         cmd_verify(argparse.Namespace(original=str(_o), edited=str(_n),
@@ -15548,19 +15548,19 @@ def cmd_selftest(_):
     _long = ("# T\n\n## Guidance\n\n" + " ".join(f"w{i}" for i in range(400))
              + "\n\n## Detail\n\n" + " ".join(f"b{i}" for i in range(600))
              + "\n")
-    _o.write_text(_long)
-    _n.write_text(_long.replace("## Guidance", "## Summary: Guidance"))
+    _o.write_text(_long, encoding="utf-8")
+    _n.write_text(_long.replace("## Guidance", "## Summary: Guidance"), encoding="utf-8")
     _rn = _io.StringIO()
     with _cl.redirect_stdout(_rn):
         cmd_verify(argparse.Namespace(original=str(_o), edited=str(_n),
                                       chat=False, content_edit=False,
                                       exempt=[]))
-    assert f"words {word_count(_long)} → {word_count(_n.read_text())}" \
+    assert f"words {word_count(_long)} → {word_count(_n.read_text(encoding='utf-8'))}" \
         in _rn.getvalue(), _rn.getvalue()
 
     def _vsplit(orig_text, edit_text):
-        _o.write_text(orig_text)
-        _n.write_text(edit_text)
+        _o.write_text(orig_text, encoding="utf-8")
+        _n.write_text(edit_text, encoding="utf-8")
         b = _io.StringIO()
         with _cl.redirect_stdout(b):
             cmd_verify(argparse.Namespace(original=str(_o), edited=str(_n),
@@ -15579,16 +15579,16 @@ def cmd_selftest(_):
     assert "opening summary 0 → 120 (120 new)" in _both, _both
 
     _ld = Path(_tf.mkdtemp())
-    (_ld / "target.md").write_text("# T\n\n## Access needed\n\nx\n")
+    (_ld / "target.md").write_text("# T\n\n## Access needed\n\nx\n", encoding="utf-8")
     (_ld / "sub").mkdir()
-    (_ld / "sub" / "target.md").write_text("# Other\n\n## Access needed\n\nx\n")
+    (_ld / "sub" / "target.md").write_text("# Other\n\n## Access needed\n\nx\n", encoding="utf-8")
     for _f, _body in (
             ("plain.md", "See [a](./target.md#access-needed) here.\n"),
             ("titled.md", 'See [a](target.md#access-needed "T") here.\n'),
             ("angled.md", "See [a](<target.md#access-needed>) here.\n"),
             ("own.md", "See [a](#access-needed) here.\n"),
             ("far.md", "See [a](./sub/target.md#access-needed) here.\n")):
-        (_ld / _f).write_text(_body)
+        (_ld / _f).write_text(_body, encoding="utf-8")
     _in = inbound_anchors(_ld / "target.md", "Access needed")
     assert sorted(_in) == ["angled.md", "plain.md", "titled.md"], _in
 
@@ -15654,13 +15654,13 @@ def cmd_selftest(_):
                       [(0, 1, "Title"), (4, 3, "Credentials"),
                        (8, 2, "Getting started")])
 
-    _o.write_text("# T\n\nThe timeout is 1.5 seconds.\n\nA ref to OPS-4118.\n")
+    _o.write_text("# T\n\nThe timeout is 1.5 seconds.\n\nA ref to OPS-4118.\n", encoding="utf-8")
     _norm = "# T\n\nThe timeout is short.\n\nA ref to OPS-4118.\n"
     assert _ver(_norm, ["OPS-4118"]) == (1, True), _ver(_norm, ["OPS-4118"])
 
     def _thin_ver(before, edited):
-        _o.write_text(before)
-        _n.write_text(edited)
+        _o.write_text(before, encoding="utf-8")
+        _n.write_text(edited, encoding="utf-8")
         buf = _io.StringIO()
         with _cl.redirect_stdout(buf):
             rc = cmd_verify(argparse.Namespace(
@@ -15716,8 +15716,8 @@ def cmd_selftest(_):
         "the outline is handing specialists heading markers to copy again"
 
     def _out(before, edited):
-        _o.write_text(before)
-        _n.write_text(edited)
+        _o.write_text(before, encoding="utf-8")
+        _n.write_text(edited, encoding="utf-8")
         buf = _io.StringIO()
         with _cl.redirect_stdout(buf):
             cmd_verify(argparse.Namespace(original=str(_o), edited=str(_n),
@@ -15744,7 +15744,7 @@ def cmd_selftest(_):
     assert summary_cap(10) == SUMMARY_MIN_WORDS, "cap lost its floor"
     _big = _sum.replace(("new word " * 240).strip(), ("new word " * 400).strip())
     assert "over a page" in _out(_pre, _big), _out(_pre, _big)
-    _o.write_text(_pre); _n.write_text(_big)
+    _o.write_text(_pre, encoding="utf-8"); _n.write_text(_big, encoding="utf-8")
     with _cl.redirect_stdout(_io.StringIO()):
         _rc = cmd_verify(argparse.Namespace(original=str(_o), edited=str(_n),
                                             chat=False, content_edit=False,
@@ -15757,7 +15757,7 @@ def cmd_selftest(_):
     _cpd = ("# T\n\n## Summary\n\n" + _para + "\n\n" + _para
             + "\n\n# Findings\n\n" + ("body word " * 500).strip() + "\n")
     assert "over a page" in _out(_cp, _cpd), _out(_cp, _cpd)
-    _o.write_text(_pre); _n.write_text(_sum)
+    _o.write_text(_pre, encoding="utf-8"); _n.write_text(_sum, encoding="utf-8")
     with _cl.redirect_stdout(_io.StringIO()):
         _rc = cmd_verify(argparse.Namespace(original=str(_o), edited=str(_n),
                                             chat=False, content_edit=False,
@@ -16013,8 +16013,8 @@ def cmd_selftest(_):
     assert "(DLP)" not in _txt6 and "(Evidence for each" not in _txt6, _txt6
     def _capped(before, edited, full):
         _fo, _fn = Path(_d) / "cap.md", Path(_d) / "cap.kv.md"
-        _fo.write_text(before)
-        _fn.write_text(edited)
+        _fo.write_text(before, encoding="utf-8")
+        _fn.write_text(edited, encoding="utf-8")
         global SHOW_ALL
         _was = SHOW_ALL
         SHOW_ALL = full
@@ -16232,8 +16232,8 @@ def cmd_selftest(_):
         except argparse.ArgumentTypeError:
             pass
     _ai, _ao = Path(_d) / "acc.md", Path(_d) / "acc.kv.md"
-    _ai.write_text("# T\n\nThe gate is 85% today.\n")
-    _ao.write_text("# T\n\nThe gate is 85%.\n")
+    _ai.write_text("# T\n\nThe gate is 85% today.\n", encoding="utf-8")
+    _ao.write_text("# T\n\nThe gate is 85%.\n", encoding="utf-8")
     write_run_record(_ao, incomplete=["prose lines 2-3"])
 
     def _acc(force):
@@ -16251,14 +16251,14 @@ def cmd_selftest(_):
 
     _rc, _msg = _acc(False)
     assert _rc == 1 and "incomplete" in _msg, (_rc, _msg)
-    assert _ai.read_text().endswith("85% today.\n"), "input was written anyway"
+    assert _ai.read_text(encoding="utf-8").endswith("85% today.\n"), "input was written anyway"
     _frc, _fmsg = _acc(True)
     assert _frc == 4, (_frc, _fmsg)
     assert "KV_FORCE overruled" in _fmsg, _fmsg
     assert "unedited" in _fmsg, _fmsg
-    assert _ai.read_text().endswith("85%.\n"), "forced accept did not write"
-    _ai.write_text("# T\n\nThe gate is 85% today.\n")
-    _ao.write_text("# T\n\nThe gate is 85%.\n")
+    assert _ai.read_text(encoding="utf-8").endswith("85%.\n"), "forced accept did not write"
+    _ai.write_text("# T\n\nThe gate is 85% today.\n", encoding="utf-8")
+    _ao.write_text("# T\n\nThe gate is 85%.\n", encoding="utf-8")
     run_record_path(_ao).unlink(missing_ok=True)
     _nrc, _nmsg = _acc(True)
     assert _nrc == 4, (_nrc, _nmsg)
@@ -16266,8 +16266,8 @@ def cmd_selftest(_):
     assert _acc(False)[0] == 1, "a missing record must still refuse"
     _ri, _ro = Path(_d) / "rev.md", Path(_d) / "rev.kv.md"
     _ri.write_text("# T\n\nThe room was warm and the window faced the garden, "
-                   "and the afternoon went by slowly.\n")
-    _ro.write_text("# T\n\nThe room was warm.\n")
+                   "and the afternoon went by slowly.\n", encoding="utf-8")
+    _ro.write_text("# T\n\nThe room was warm.\n", encoding="utf-8")
     write_run_record(_ro)
     _buf = _io.StringIO()
     with _cl.redirect_stdout(_buf), _cl.redirect_stderr(_buf):
@@ -16279,8 +16279,8 @@ def cmd_selftest(_):
     assert "unanswered" in _last and "already replaced" in _last, \
         f"the review trailer is not the last line a tail reader sees: {_last!r}"
     _ci, _co = Path(_d) / "cln.md", Path(_d) / "cln.kv.md"
-    _ci.write_text("# T\n\nThe room was warm and the window faced the garden.\n")
-    _co.write_text("# T\n\nThe room was warm and the window faced the garden.\n")
+    _ci.write_text("# T\n\nThe room was warm and the window faced the garden.\n", encoding="utf-8")
+    _co.write_text("# T\n\nThe room was warm and the window faced the garden.\n", encoding="utf-8")
     write_run_record(_co)
     _cbuf = _io.StringIO()
     with _cl.redirect_stdout(_cbuf), _cl.redirect_stderr(_cbuf):
@@ -16310,7 +16310,7 @@ def cmd_selftest(_):
     assert canon_unit("ms") == "ms" and canon_unit("mins") == "min"
     assert canon_unit("%") == "" and canon_unit("bananas") == ""
     import tempfile as _tf2
-    with _tf2.NamedTemporaryFile("w", suffix=".json", delete=False) as _fh2:
+    with _tf2.NamedTemporaryFile("w", suffix=".json", delete=False, encoding="utf-8") as _fh2:
         _fh2.write('{"units": {"add": ["mg", "mcg"]},'
                    ' "unit_canon": {"mg": "mg", "mcg": "mcg"},'
                    ' "unit_family": {"mg": "mass", "mcg": "mass"}}')
@@ -16320,7 +16320,7 @@ def cmd_selftest(_):
     assert any(i.get("units") == ["mcg", "mg"] for i in _inc), \
         f"a profile unit never reached the conflict check: {_inc}"
     reset_profile()
-    with _tf2.NamedTemporaryFile("w", suffix=".json", delete=False) as _fh3:
+    with _tf2.NamedTemporaryFile("w", suffix=".json", delete=False, encoding="utf-8") as _fh3:
         _fh3.write('{"units": {"add": ["furlong"]},'
                    ' "unit_canon": {"furlong": "fur"},'
                    ' "unit_family": {"fur": ""}}')
@@ -16340,7 +16340,7 @@ def cmd_selftest(_):
     assert FACT_RX["number"].search("dose 500 mg").group(0) == "500", \
         "reset kept a profile's unit in the protected-token rules"
     assert FACT_RX["path"].search("see notes.md today").group(0) == "notes.md"
-    with _tf2.NamedTemporaryFile("w", suffix=".json", delete=False) as _fh4:
+    with _tf2.NamedTemporaryFile("w", suffix=".json", delete=False, encoding="utf-8") as _fh4:
         _fh4.write('{"code_ext": ["rtf"]}')
     load_profile(_fh4.name)
     assert not FACT_RX["path"].search("see notes.md today"), \
@@ -16353,7 +16353,7 @@ def cmd_selftest(_):
     Path(_fh2.name).unlink()
 
     assert SEGMENTED.search("see notes.md"), "the default build lost .md"
-    with _tf2.NamedTemporaryFile("w", suffix=".json", delete=False) as _fh5:
+    with _tf2.NamedTemporaryFile("w", suffix=".json", delete=False, encoding="utf-8") as _fh5:
         _fh5.write('{"code_ext": ["rtf"]}')
     load_profile(_fh5.name)
     assert not SEGMENTED.search("see notes.md"), \
@@ -16367,7 +16367,7 @@ def cmd_selftest(_):
     assert CLAIM_RULE.search("this is a risk")
     assert CLAIM_RULE.search("to jest ryzyko"), "pl claim words are not read"
     assert ABBR.search("see Fig.") and ABBR.search("owoce, np.")
-    with _tf2.NamedTemporaryFile("w", suffix=".json", delete=False) as _fh6:
+    with _tf2.NamedTemporaryFile("w", suffix=".json", delete=False, encoding="utf-8") as _fh6:
         _fh6.write('{"langs": ["en"]}')
     load_profile(_fh6.name)
     assert not CLAIM_RULE.search("nie wolno tego robić"), \
@@ -16381,7 +16381,7 @@ def cmd_selftest(_):
     assert CLAIM_RULE.search("nie wolno tego robić"), "reset lost Polish"
     Path(_fh6.name).unlink()
 
-    with _tf2.NamedTemporaryFile("w", suffix=".json", delete=False) as _fh7:
+    with _tf2.NamedTemporaryFile("w", suffix=".json", delete=False, encoding="utf-8") as _fh7:
         _fh7.write('{"shapes": {"drop": ["colon label"]}}')
     load_profile(_fh7.name)
     assert "colon label" not in CHAT, "a dropped chat shape survived"
@@ -16389,7 +16389,7 @@ def cmd_selftest(_):
     assert "colon label" in CHAT, "reset did not put the chat shape back"
     Path(_fh7.name).unlink()
 
-    with _tf2.NamedTemporaryFile("w", suffix=".json", delete=False) as _fh9:
+    with _tf2.NamedTemporaryFile("w", suffix=".json", delete=False, encoding="utf-8") as _fh9:
         _fh9.write('{"langs": ["de"], "words": {"de": {'
                    '"summary heading": ["zusammenfassung"],'
                    '"sign-off": ["melde dich"]}}}')
@@ -16575,7 +16575,7 @@ def cmd_selftest(_):
     assert THRESHOLDS == DEFAULT_THRESHOLDS, \
         "reset_profile left a profile's thresholds in place"
     import tempfile as _tf0
-    with _tf0.NamedTemporaryFile("w", suffix=".json", delete=False) as _fh0:
+    with _tf0.NamedTemporaryFile("w", suffix=".json", delete=False, encoding="utf-8") as _fh0:
         _fh0.write('{"shapes": {"drop": ["jargon"]}}')
     load_profile(_fh0.name)
     assert "jargon" not in EXISTENCE, "a dropped shape survived"
@@ -16586,7 +16586,7 @@ def cmd_selftest(_):
     assert "jargon" in EXISTENCE and "jargon" in SPECIALISTS["prose"][1], \
         "reset did not put the dropped shape back"
     Path(_fh0.name).unlink()
-    with _tf0.NamedTemporaryFile("w", suffix=".json", delete=False) as _fh1:
+    with _tf0.NamedTemporaryFile("w", suffix=".json", delete=False, encoding="utf-8") as _fh1:
         _fh1.write('{"specialists": {"prose": null}}')
     load_profile(_fh1.name)
     assert "prose" not in SPECIALISTS, "a dropped specialist survived"
@@ -16636,7 +16636,7 @@ def cmd_selftest(_):
                       if _base_globals.get(k) != _now.get(k))
         assert not _gap, f"after {_pf.name}, reset left {_gap} changed"
 
-    with _tf0.NamedTemporaryFile("w", suffix=".json", delete=False) as _fh8:
+    with _tf0.NamedTemporaryFile("w", suffix=".json", delete=False, encoding="utf-8") as _fh8:
         _fh8.write('{"code_ext": ["zzq"], "units": ["qqz"],'
                    ' "unit_canon": {"qqz": "qqz"}, "unit_family": {"qqz": ""}}')
     load_profile(_fh8.name)
@@ -16678,7 +16678,7 @@ def cmd_selftest(_):
             ('{"words": {"en": {"sign-off": ["(oops"]}}}',
              "a broken pattern in a word bank"),
     ):
-        with _tf.NamedTemporaryFile("w", suffix=".json", delete=False) as _fh:
+        with _tf.NamedTemporaryFile("w", suffix=".json", delete=False, encoding="utf-8") as _fh:
             _fh.write(_bad)
         try:
             load_profile(_fh.name)
@@ -16710,14 +16710,14 @@ def cmd_selftest(_):
     assert added_shapes(_jargony, _jargony) == [], (
         "an insert carrying jargon is refused, and the floor says it lands")
     assert "You may drop a number, path, ticket or link" in \
-        (SPECIALIST_DIR / "noise.md").read_text(), \
+        (SPECIALIST_DIR / "noise.md").read_text(encoding="utf-8"), \
         "noise no longer states its own exemption from the fact gate"
-    assert '"op": "move"' in (SPECIALIST_DIR / "structure.md").read_text(), \
+    assert '"op": "move"' in (SPECIALIST_DIR / "structure.md").read_text(encoding="utf-8"), \
         "structure no longer states the op only it has"
     _sp = specialist_prompt("summary", 1000)
     assert str(summary_cap(1000)) in _sp, "summary.md lost the live cap"
     assert str(SUMMARY_NEEDED_FROM) in _sp, "summary.md lost the live threshold"
-    _summary_md = (SPECIALIST_DIR / "summary.md").read_text().lower()
+    _summary_md = (SPECIALIST_DIR / "summary.md").read_text(encoding="utf-8").lower()
     _kind_words = {"number": ("number",), "ticket": ("ticket", "identifier"),
                    "url": ("link", "url"), "path": ("path",),
                    "version": ("version",), "code": ("code",),
@@ -16891,12 +16891,12 @@ def cmd_selftest(_):
         _b = Path(_src_box) / "b" / "doc.md"
         for _p, _t in ((_a, "original\n"), (_b, "edited\n")):
             _p.parent.mkdir(parents=True)
-            _p.write_text(_t)
+            _p.write_text(_t, encoding="utf-8")
         with tempfile.TemporaryDirectory() as _box:
             _look = sandbox_copies(_box, [_a, _b])
             assert _look[_a] != _look[_b], _look
-            assert _look[_a].read_text() == "original\n", "the copies collided"
-            assert _look[_b].read_text() == "edited\n", "the copies collided"
+            assert _look[_a].read_text(encoding="utf-8") == "original\n", "the copies collided"
+            assert _look[_b].read_text(encoding="utf-8") == "edited\n", "the copies collided"
             assert not [p for p in Path(_box).iterdir() if p.is_file()], _box
             _said = f"- file: {_look[_b]}:9\n  fix: shorten it\n"
             assert unsandbox(_said, _look, _box) == \
@@ -16914,9 +16914,9 @@ def cmd_selftest(_):
     _tal = "".join(f"## 1{i}:00 - 1{i}:30\n\nAlex asks who owns the retention "
                    f"job.\n\nAhmed says he takes it after the release.\n\n"
                    for i in range(8))
-    (_gd / "call.md").write_text("# Call notes\n\n" + _tal)
+    (_gd / "call.md").write_text("# Call notes\n\n" + _tal, encoding="utf-8")
     (_gd / "plan.md").write_text("# Design\n\n## Retention\n\n"
-                                 "The export job copies rows nightly.\n")
+                                 "The export job copies rows nightly.\n", encoding="utf-8")
     _seen = []
     _real_run = spawn.run_tree
 
@@ -16999,8 +16999,8 @@ def cmd_selftest(_):
         shutil.copyfile(_real_specialist_dir / "summary.md",
                          _tmp_specialist_dir / "summary.md")
         _bad_prompt = _tmp_specialist_dir / "summary.md"
-        _keep = _bad_prompt.read_text()
-        _bad_prompt.write_text(_keep + "\n{{NO_SUCH_VALUE}}\n")
+        _keep = _bad_prompt.read_text(encoding="utf-8")
+        _bad_prompt.write_text(_keep + "\n{{NO_SUCH_VALUE}}\n", encoding="utf-8")
         SPECIALIST_DIR = _tmp_specialist_dir
         try:
             specialist_prompt("summary", 1000)
@@ -17028,7 +17028,7 @@ def cmd_selftest(_):
                 out.append(s)
         return out
 
-    _rules = [r for d in _smoke_docs for r in _rules_in(d.read_text())]
+    _rules = [r for d in _smoke_docs for r in _rules_in(d.read_text(encoding="utf-8"))]
     assert len(_rules) >= 20, \
         f"only {len(_rules)} rules in the shipped docs — too few to test on"
 
@@ -17073,8 +17073,8 @@ def cmd_selftest(_):
             _wflat = " ".join(["The"] + CLAIM_RULE.sub("still", _wr).split()[1:])
             if CLAIM_RULE.search(_wflat) or RECOMMENDATION.match(_wflat):
                 continue
-            _wo.write_text(_head + _wr + "\n")
-            _wn.write_text(_head + _wflat + "\n")
+            _wo.write_text(_head + _wr + "\n", encoding="utf-8")
+            _wn.write_text(_head + _wflat + "\n", encoding="utf-8")
             with contextlib.redirect_stdout(io.StringIO()) as _wcap:
                 _wrc = cmd_verify(argparse.Namespace(
                     original=str(_wo), edited=str(_wn), chat=False,
@@ -17090,7 +17090,7 @@ def cmd_selftest(_):
 
     _cut = re.compile(r"; (?=\w)|, (?:and|but) (?=\w)")
     for _d in _smoke_docs:
-        _raw = _d.read_text()
+        _raw = _d.read_text(encoding="utf-8")
         _out, _hits = [], 0
         for _ln in _raw.split("\n"):
             _s = _ln.strip()
@@ -17111,8 +17111,8 @@ def cmd_selftest(_):
             continue
         _box = Path(tempfile.mkdtemp(prefix="kv-smoke-"))
         try:
-            (_box / "o.md").write_text(_raw)
-            (_box / "n.md").write_text("\n".join(_out))
+            (_box / "o.md").write_text(_raw, encoding="utf-8")
+            (_box / "n.md").write_text("\n".join(_out), encoding="utf-8")
             _cap = io.StringIO()
             with contextlib.redirect_stdout(_cap):
                 _rc = cmd_verify(argparse.Namespace(
@@ -17130,17 +17130,17 @@ def cmd_selftest(_):
     _genv = {_k: os.environ.get(_k)
              for _k in ("PYTHONOPTIMIZE", "XDG_CACHE_HOME", "PATH")}
     try:
-        (_gbox / "o.md").write_text("# T\n\nOK prose here.\n")
-        (_gbox / "n.md").write_text("# T\n\nreworded prose here.\n")
+        (_gbox / "o.md").write_text("# T\n\nOK prose here.\n", encoding="utf-8")
+        (_gbox / "n.md").write_text("# T\n\nreworded prose here.\n", encoding="utf-8")
 
         (_gbox / "assertgate.py").write_text(
             "import sys\n"
-            "t = open(sys.argv[1]).read()\n"
-            "assert 'OK' in t, 'the token went'\n")
+            "t = open(sys.argv[1], encoding='utf-8').read()\n"
+            "assert 'OK' in t, 'the token went'\n", encoding="utf-8")
         (_gbox / "exitgate.py").write_text(
             "import sys\n"
-            "t = open(sys.argv[1]).read()\n"
-            "raise SystemExit(0 if 'OK' in t else 1)\n")
+            "t = open(sys.argv[1], encoding='utf-8').read()\n"
+            "raise SystemExit(0 if 'OK' in t else 1)\n", encoding="utf-8")
         for _arm, _on in (("under PYTHONOPTIMIZE=1", True), ("clean env", False)):
             if _on:
                 os.environ["PYTHONOPTIMIZE"] = "1"
@@ -17165,7 +17165,7 @@ def cmd_selftest(_):
             assert _k1["exit-gate"]["before"] == gatelib.OK, _k1
 
         (_gbox / gatelib.GATES_FILE).write_text(json.dumps({"gates": [
-            {"name": "k2", "argv": ["/bin/true", "{edited}"], "timeout": 60}]}))
+            {"name": "k2", "argv": ["/bin/true", "{edited}"], "timeout": 60}]}), encoding="utf-8")
         _moved = _gbox / "cache"
         _k2 = {}
         for _arm, _xdg in (("default", None), ("moved", str(_moved))):
@@ -17205,10 +17205,10 @@ def cmd_selftest(_):
             _bin.mkdir()
             if os.name == "nt":
                 _prog = _bin / "kv-selftest-lintdoc.cmd"
-                _prog.write_text('@if exist "%~1" (exit /b 0) else (exit /b 1)\r\n')
+                _prog.write_text('@if exist "%~1" (exit /b 0) else (exit /b 1)\r\n', encoding="utf-8")
             else:
                 _prog = _bin / "kv-selftest-lintdoc"
-                _prog.write_text('#!/bin/sh\ntest -f "$1"\n')
+                _prog.write_text('#!/bin/sh\ntest -f "$1"\n', encoding="utf-8")
                 _prog.chmod(0o755)
             os.environ["PATH"] = f"{_bin}{os.pathsep}{_genv['PATH']}"
             _k3[_which] = "\n".join(gatelib.report(gatelib.run(

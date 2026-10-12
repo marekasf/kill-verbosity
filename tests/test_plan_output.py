@@ -46,7 +46,7 @@ def test_silent_chunks_name_their_line_range_and_heading(tmp_path):
         "# Notes\n\n"
         + "".join(f"## Section {i}\n\n{FILLER} {FILLER}\n\n"
                   for i in range(1, 3))
-        + "## Last\n\nIt is worth noting that the deployment finished.\n")
+        + "## Last\n\nIt is worth noting that the deployment finished.\n", encoding="utf-8")
 
     out = run_tool("plan", p).stdout
 
@@ -65,7 +65,7 @@ def test_header_states_total_and_prose_once(tmp_path):
     p = tmp_path / "doc.md"
     p.write_text(
         "# Notes\n\n| col | note |\n|---|---|\n| a | one two three four |\n\n"
-        "It is worth noting that the deployment finished in the end.\n")
+        "It is worth noting that the deployment finished in the end.\n", encoding="utf-8")
 
     out = run_tool("plan", p).stdout
     head = next(x for x in out.splitlines() if "fault-shape" in x)
@@ -84,7 +84,7 @@ def test_fold_note_says_which_way_and_why(tmp_path):
     report where the folded count printed SMALLER than the count above it.
     It now names the direction the numbers actually moved."""
     doc = tmp_path / "w.md"
-    doc.write_text(WRAPPED)
+    doc.write_text(WRAPPED, encoding="utf-8")
 
     out = run_tool("plan", doc).stdout
     note = next(l for l in out.splitlines() if "hard-wraps" in l)
@@ -124,7 +124,7 @@ def test_wall_advice_prints_once_as_a_legend(tmp_path):
             "It commits the batch. It releases the lock. It logs the run.")
     p = tmp_path / "doc.md"
     p.write_text(
-        f"# Notes\n\n## First\n\n{wall}\n\n## Second\n\n{wall}\n")
+        f"# Notes\n\n## First\n\n{wall}\n\n## Second\n\n{wall}\n", encoding="utf-8")
 
     out = run_tool("plan", p).stdout
 

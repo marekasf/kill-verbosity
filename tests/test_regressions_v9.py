@@ -21,7 +21,7 @@ def _policy(title_level, tmp_path, words=90):
         f"{title_level} Generative AI Policy\n\n"
         f"## Summary\n\n"
         f"Use approved tools only and review every output before use.\n\n"
-        f"## Body\n\n" + " ".join([FILLER] * words) + "\n"
+        f"## Body\n\n" + " ".join([FILLER] * words) + "\n", encoding="utf-8"
     )
     return p
 
@@ -119,14 +119,14 @@ def _transcript(tmp_path):
         "# Call\n\n"
         + "".join(
             f"###### 10:0{i % 10} alex\n\n{FILLER} {FILLER}\n\n" for i in range(30)
-        )
+        ), encoding="utf-8"
     )
     return p
 
 
 def _project(folder, **fields):
     """The project file the tool finds beside the document."""
-    (folder / ".killverbosity.json").write_text(json.dumps(fields))
+    (folder / ".killverbosity.json").write_text(json.dumps(fields), encoding="utf-8")
 
 
 def _only(tmp_path, *names):
@@ -164,7 +164,7 @@ def test_p350_a_wrapped_line_of_backticks_is_named_not_just_numbered(tmp_path):
         '  the script reads it. This sidesteps the fragile "find the\n'
         '  ```json fence in stdout" parsing the MR uses.\n\n'
         + " ".join([FILLER] * 40)
-        + "\n"
+        + "\n", encoding="utf-8"
     )
     r = run_tool("plan", p)
     assert r.returncode == 2, r.stdout
@@ -180,7 +180,7 @@ def test_p350_a_forgotten_closer_is_not_blamed_on_wrapping(tmp_path):
     p.write_text(
         "# Title\n\nHere is the code:\n\n```python\nx = 1\n\n"
         + " ".join([FILLER] * 40)
-        + "\n"
+        + "\n", encoding="utf-8"
     )
     r = run_tool("plan", p)
     assert r.returncode == 2, r.stdout
@@ -199,7 +199,7 @@ def test_p342_a_profile_blind_to_the_rule_check_says_so(tmp_path):
         + ES
         + "\n\n## Cuerpo\n\n"
         + " ".join([ES] * 120)
-        + "\n"
+        + "\n", encoding="utf-8"
     )
     _project(tmp_path, profile="es")
     out = run_tool("plan", p).stdout
@@ -215,7 +215,7 @@ def test_p342_the_default_profile_does_not_warn(tmp_path):
         + FILLER
         + "\n\n## Body\n\n"
         + " ".join([FILLER] * 120)
-        + "\n"
+        + "\n", encoding="utf-8"
     )
     assert "no words for" not in run_tool("plan", p).stdout
 
@@ -231,7 +231,7 @@ def _reference(tmp_path):
             for r in range(14)
         ]
         out.append("")
-    p.write_text("\n".join(out) + "\n")
+    p.write_text("\n".join(out) + "\n", encoding="utf-8")
     return p
 
 
@@ -353,7 +353,7 @@ def _stripped_transcript(tmp_path):
         "what happened during the run and why it happened that way."
     )
     p.write_text(
-        "# Call notes\n\n" + "".join(f"## Turn {i}\n\n{line}\n\n" for i in range(30))
+        "# Call notes\n\n" + "".join(f"## Turn {i}\n\n{line}\n\n" for i in range(30)), encoding="utf-8"
     )
     return p
 
@@ -402,7 +402,7 @@ def test_p351_the_advice_is_not_reprinted_after_it_was_followed(tmp_path):
                 else f"## Section {i}\n\n{body} {body}\n\n"
             )
             for i in range(24)
-        )
+        ), encoding="utf-8"
     )
     _project(tmp_path, profile="genre-transcript")
     r = run_tool("plan", p)
@@ -413,7 +413,7 @@ def test_p351_a_profile_naming_an_unknown_kind_is_refused(tmp_path):
     """The kind is declared data now, so a typo in it has to be caught where it
     is written and named."""
     prof = tmp_path / "bad.json"
-    prof.write_text('{"name": "bad", "genre": "transcripts"}')
+    prof.write_text('{"name": "bad", "genre": "transcripts"}', encoding="utf-8")
     p = _stripped_transcript(tmp_path)
     _project(tmp_path, profile=str(prof))
     r = run_tool("plan", p)
@@ -431,7 +431,7 @@ def test_p351_the_kind_is_declared_not_read_off_the_filename(kv, tmp_path):
     src = kv.PROFILE_DIR / "genre-transcript.json"
     dst = tmp_path / "my-interview-rules.json"
     shutil.copy(src, dst)
-    assert json.loads(dst.read_text())["genre"] == "transcript"
+    assert json.loads(dst.read_text(encoding="utf-8"))["genre"] == "transcript"
     try:
         kv.load_profile(str(dst))
         assert kv.PROFILE_GENRE == "transcript"
@@ -449,7 +449,7 @@ def _timestamped_call(tmp_path, turns=60):
     p = tmp_path / "call.md"
     p.write_text(
         "# Call\n\n"
-        + "".join(f"###### 10:00:{i:02d} alex\n\n{turn}\n\n" for i in range(turns))
+        + "".join(f"###### 10:00:{i:02d} alex\n\n{turn}\n\n" for i in range(turns)), encoding="utf-8"
     )
     return p
 
@@ -459,7 +459,7 @@ def test_p358_a_transcript_is_chunked_on_its_timestamps(kv, tmp_path):
     `######`, so chunking fell through to paragraph runs — and a transcript's
     turns mask as quotations, so that fallback had no prose to break on.
     """
-    got = kv.mask(_timestamped_call(tmp_path).read_text(), "call.md")
+    got = kv.mask(_timestamped_call(tmp_path).read_text(encoding="utf-8"), "call.md")
     chunks = kv.chunk(got[0], got[1])
     assert len(chunks) > 10, len(chunks)
     assert (
@@ -476,9 +476,9 @@ def test_p358_a_prose_document_still_cuts_on_its_h2(kv, tmp_path):
         + "".join(
             f"## Section {i}\n\n{FILLER}\n\n#### Note {i}\n\n{FILLER}\n\n"
             for i in range(6)
-        )
+        ), encoding="utf-8"
     )
-    got = kv.mask(p.read_text(), "doc.md")
+    got = kv.mask(p.read_text(encoding="utf-8"), "doc.md")
     titles = [c["title"] for c in kv.chunk(got[0], got[1])]
     assert titles == ["(preamble)"] + [f"Section {i}" for i in range(6)], titles
 
@@ -498,7 +498,7 @@ def test_p345_one_broken_backend_prints_its_cause_a_handful_of_times(tmp_path):
     parts = ["# Policy", ""]
     for i in range(12):
         parts += [f"## Section {i}", ""] + [line, ""] * 3
-    src.write_text("\n".join(parts) + "\n")
+    src.write_text("\n".join(parts) + "\n", encoding="utf-8")
 
     fake = tmp_path / "bin"
     fake.mkdir()
@@ -508,13 +508,13 @@ def test_p345_one_broken_backend_prints_its_cause_a_handful_of_times(tmp_path):
         "echo 'Traceback (most recent call last):' >&2\n"
         "echo '  File x, line 1' >&2\n"
         "echo 'ModuleNotFoundError: No module named nosuchmodule' >&2\n"
-        "exit 1\n")
+        "exit 1\n", encoding="utf-8")
     codex.chmod(0o755)
     r = subprocess.run(
         [sys.executable, str(LAUNCHER), "run", str(src), "--agent", "codex",
          "-o", str(tmp_path / "out.md")],
         capture_output=True, text=True,
-        env={**os.environ, "PATH": str(fake)})
+        env={**os.environ, "PATH": str(fake)}, encoding="utf-8")
     whole = r.stdout + r.stderr
     jobs = whole.count(" proposed  ")
     copies = whole.count("nosuchmodule")
@@ -537,7 +537,7 @@ def test_p345_a_stack_trace_is_cut_to_its_first_two_lines(kv):
 def _record(out, **fields):
     """The run record `run` leaves beside its output. Returns its path."""
     p = out.with_suffix(out.suffix + ".kvrun")
-    p.write_text(json.dumps(fields))
+    p.write_text(json.dumps(fields), encoding="utf-8")
     return p
 
 
@@ -550,9 +550,9 @@ def _chat_pair(tmp_path):
     )
     src = tmp_path / "reply.md"
     out = tmp_path / "reply.kv.md"
-    src.write_text("\n\n".join([line] * 40) + "\n")
+    src.write_text("\n\n".join([line] * 40) + "\n", encoding="utf-8")
     out.write_text(
-        "\n\n".join([line.replace("it is worth noting that ", "")] * 40) + "\n"
+        "\n\n".join([line.replace("it is worth noting that ", "")] * 40) + "\n", encoding="utf-8"
     )
     return src, out
 
@@ -598,7 +598,7 @@ def _facts_line(path):
 def test_p343_english_decimals_count_once(tmp_path):
     p = tmp_path / "en.md"
     p.write_text(
-        "# T\n\nAccuracy is 69.0% and the rate is 4%. " "The p95 is 5.2 seconds.\n"
+        "# T\n\nAccuracy is 69.0% and the rate is 4%. " "The p95 is 5.2 seconds.\n", encoding="utf-8"
     )
     assert "number 3" in _facts_line(p)
 
@@ -608,7 +608,7 @@ def test_p343_spanish_decimal_comma_is_one_number(tmp_path):
     p = tmp_path / "es.md"
     p.write_text(
         "# T\n\nLa precision es del 69,0% y la tasa es del 4%. "
-        "El p95 es 5,2 segundos.\n"
+        "El p95 es 5,2 segundos.\n", encoding="utf-8"
     )
     assert "number 3" in _facts_line(p)
 
@@ -670,9 +670,9 @@ def test_p344_the_per_specialist_line_names_an_owner_transfer_as_one(
         "the following review."
     )
     src.write_text(
-        "# Retry Policy\n\n" + body + "\n\n" + "\n\n".join([plain] * 12) + "\n"
+        "# Retry Policy\n\n" + body + "\n\n" + "\n\n".join([plain] * 12) + "\n", encoding="utf-8"
     )
-    lines = src.read_text().splitlines()
+    lines = src.read_text(encoding="utf-8").splitlines()
     target = next(i for i, ln in enumerate(lines, 1) if ln == body)
 
     def reply(who, lo, hi):
@@ -714,9 +714,9 @@ INVENTED = "Want a shorter in-thread version?"
 
 def _chat_files(tmp_path, edited_body):
     orig = tmp_path / "msg.orig.md"
-    orig.write_text(MESSAGE + "\n")
+    orig.write_text(MESSAGE + "\n", encoding="utf-8")
     edited = tmp_path / "msg.kv.md"
-    edited.write_text(edited_body + "\n")
+    edited.write_text(edited_body + "\n", encoding="utf-8")
     return orig, edited
 
 
@@ -841,7 +841,7 @@ def test_p354_a_legitimate_chat_edit_is_not_an_arrival(tmp_path, name, edited):
 def test_p354_the_whole_run_refuses_the_insert(kv, monkeypatch, tmp_path, capsys):
     """End to end, not through merge directly. This is the reported path."""
     src = tmp_path / "msg.md"
-    src.write_text(MESSAGE + "\n")
+    src.write_text(MESSAGE + "\n", encoding="utf-8")
     out = tmp_path / "msg.kv.md"
     last = "i can turn the fixture rule off this week if that helps."
     target = next(i for i, ln in enumerate(MESSAGE.splitlines(), 1) if ln == last)
@@ -856,7 +856,7 @@ def test_p354_the_whole_run_refuses_the_insert(kv, monkeypatch, tmp_path, capsys
     run_canned(kv, monkeypatch, src, out, reply, extra=("--chat",))
     printed = capsys.readouterr().out
 
-    assert INVENTED not in out.read_text(), "the invented line was written"
+    assert INVENTED not in out.read_text(encoding="utf-8"), "the invented line was written"
     assert "one author" in printed, printed
 
 
@@ -878,9 +878,9 @@ PROMOTED = "The customization story matters."
 
 def _briefing(tmp_path, edited_body):
     orig = tmp_path / "brief.orig.md"
-    orig.write_text(BRIEFING + "\n")
+    orig.write_text(BRIEFING + "\n", encoding="utf-8")
     edited = tmp_path / "brief.kv.md"
-    edited.write_text(edited_body + "\n")
+    edited.write_text(edited_body + "\n", encoding="utf-8")
     return orig, edited
 
 
@@ -924,7 +924,7 @@ def test_p353_a_lead_promoted_from_the_body_passes(tmp_path):
         "can double-charge an account."
     )
     orig = tmp_path / "retry.orig.md"
-    orig.write_text(buried + "\n")
+    orig.write_text(buried + "\n", encoding="utf-8")
     edited = tmp_path / "retry.kv.md"
     edited.write_text(
         lead
@@ -934,7 +934,7 @@ def test_p353_a_lead_promoted_from_the_body_passes(tmp_path):
             "write, so a timeout there can double-charge an account.\n\n",
             "",
         )
-        + "\n"
+        + "\n", encoding="utf-8"
     )
 
     r = run_tool("verify", orig, edited, "--chat")
@@ -949,7 +949,7 @@ def test_p353_a_lead_the_body_already_states_is_not_an_arrival(tmp_path):
         "that really matters here.",
     )
     orig = tmp_path / "grounded.orig.md"
-    orig.write_text(grounded + "\n")
+    orig.write_text(grounded + "\n", encoding="utf-8")
     edited = tmp_path / "grounded.kv.md"
     edited.write_text(
         PROMOTED
@@ -958,7 +958,7 @@ def test_p353_a_lead_the_body_already_states_is_not_an_arrival(tmp_path):
             "### The customization story (this is the part that matters)",
             "### The customization story",
         )
-        + "\n"
+        + "\n", encoding="utf-8"
     )
 
     r = run_tool("verify", orig, edited, "--chat")
@@ -970,7 +970,7 @@ def test_p353_a_lead_the_body_already_states_is_not_an_arrival(tmp_path):
 def test_p353_the_chat_prompt_restricts_a_lead_to_body_prose():
     """A prompt fix with no guard is a prompt fix that silently regresses."""
     chat_md = REPO / "specialists" / "chat.md"
-    paras = chat_md.read_text().split("\n\n")
+    paras = chat_md.read_text(encoding="utf-8").split("\n\n")
     rule = next(p for p in paras if "buried lead" in p.lower())
 
     assert "body" in rule.lower(), rule
@@ -994,7 +994,7 @@ def test_p353_the_gate_misses_a_lead_whose_words_are_in_the_body(tmp_path):
         "tuning is thin.",
     )
     orig = tmp_path / "thin.orig.md"
-    orig.write_text(thin + "\n")
+    orig.write_text(thin + "\n", encoding="utf-8")
     edited = tmp_path / "thin.kv.md"
     edited.write_text(
         PROMOTED
@@ -1003,7 +1003,7 @@ def test_p353_the_gate_misses_a_lead_whose_words_are_in_the_body(tmp_path):
             "### The customization story (this is the part that matters)",
             "### The customization story",
         )
-        + "\n"
+        + "\n", encoding="utf-8"
     )
 
     r = run_tool("verify", orig, edited, "--chat")
@@ -1024,7 +1024,7 @@ def test_r100_a_chunk_that_found_something_still_prints(tmp_path):
     p.write_text(
         "# Notes\n\n"
         + "".join(f"## Section {i}\n\n{FILLER} {FILLER}\n\n" for i in range(5))
-        + "## Last\n\nIt is worth noting that the deployment finished.\n"
+        + "## Last\n\nIt is worth noting that the deployment finished.\n", encoding="utf-8"
     )
     out = run_tool("plan", p).stdout
 
@@ -1052,7 +1052,7 @@ def _rewrite_first_paragraph(kv, monkeypatch, tmp_path, extra):
     """Replace the opening sentence in the wrap form: the whole rewrite on the
     run's first line, an empty string for every line under it."""
     src = tmp_path / "msg.md"
-    src.write_text(RAGGED + "\n")
+    src.write_text(RAGGED + "\n", encoding="utf-8")
     out = tmp_path / "msg.kv.md"
 
     src_lines = RAGGED.split("\n")
@@ -1080,7 +1080,7 @@ def _rewrite_first_paragraph(kv, monkeypatch, tmp_path, extra):
         ]
 
     run_canned(kv, monkeypatch, src, out, reply, extra=extra)
-    return out.read_text()
+    return out.read_text(encoding="utf-8")
 
 
 def test_r90_chat_joins_each_paragraph_to_one_line(kv, monkeypatch, tmp_path):
@@ -1295,8 +1295,8 @@ RULE_GONE = ("The dispatcher handles the customer access token and the "
 
 def _verify(tmp_path, before, after):
     a, b = tmp_path / "a.md", tmp_path / "b.md"
-    a.write_text(f"# Doc\n\n{before}\n")
-    b.write_text(f"# Doc\n\n{after}\n")
+    a.write_text(f"# Doc\n\n{before}\n", encoding="utf-8")
+    b.write_text(f"# Doc\n\n{after}\n", encoding="utf-8")
     return run_tool("verify", a, b)
 
 
@@ -1370,7 +1370,7 @@ def test_r101_one_timestamp_heading_is_not_a_transcript(kv):
 def test_r101_the_run_reports_a_real_sentence_count(kv, monkeypatch, tmp_path):
     """End to end. The reported defect is a line in the run report."""
     src = tmp_path / "call.md"
-    src.write_text(_call())
+    src.write_text(_call(), encoding="utf-8")
     out = tmp_path / "call.kv.md"
     target = next(i for i, ln in enumerate(_call().splitlines(), 1) if ln == TURN)
 
@@ -1388,7 +1388,7 @@ def test_r101_the_run_reports_a_real_sentence_count(kv, monkeypatch, tmp_path):
         ]
 
     run_canned(kv, monkeypatch, src, out, reply)
-    body = out.read_text()
+    body = out.read_text(encoding="utf-8")
 
     assert _sentences(kv, kv.countable(body)) > 1, body
 
@@ -1402,8 +1402,8 @@ LONG_CHAT = (
 
 def _capped_pair(tmp_path, before, after):
     a, b = tmp_path / "msg.orig.md", tmp_path / "msg.kv.md"
-    a.write_text(before.strip() + "\n")
-    b.write_text(after.strip() + "\n")
+    a.write_text(before.strip() + "\n", encoding="utf-8")
+    b.write_text(after.strip() + "\n", encoding="utf-8")
     return a, b
 
 
@@ -1457,7 +1457,7 @@ def _repeat_doc(tmp_path):
         "## Notes\n\n"
         "It is worth noting that the deployment check is missing here and the "
         "team should consider adding one.\n\n"
-        "## More\n\n" + FILLER + "\n"
+        "## More\n\n" + FILLER + "\n", encoding="utf-8"
     )
     return p
 
@@ -1483,7 +1483,7 @@ def test_r81_an_edit_that_repeats_untouched_text_is_refused(kv, monkeypatch, tmp
     ends with a repeat it did not start with."""
     src = _repeat_doc(tmp_path)
     out = tmp_path / "doc.kv.md"
-    body = src.read_text().splitlines()
+    body = src.read_text(encoding="utf-8").splitlines()
     noisy = next(
         i for i, ln in enumerate(body, 1) if ln.startswith("It is worth noting")
     )
@@ -1502,11 +1502,11 @@ def test_r81_an_edit_that_repeats_untouched_text_is_refused(kv, monkeypatch, tmp
         ]
 
     run_canned(kv, monkeypatch, src, out, reply)
-    written = out.read_text()
+    written = out.read_text(encoding="utf-8")
 
     assert (
         kv.repeat_delta(
-            kv.duplicates(kv.mask(src.read_text())[0]),
+            kv.duplicates(kv.mask(src.read_text(encoding="utf-8"))[0]),
             kv.duplicates(kv.mask(written)[0]),
         )[1]
         == []
@@ -1566,12 +1566,12 @@ def _rule_doc(tmp_path):
         body += [f"## Section {i}", "", CHAFF, ""]
     body += ["## Rules", "", RULE, ""]
     src = tmp_path / "doc.md"
-    src.write_text("\n".join(body) + "\n")
+    src.write_text("\n".join(body) + "\n", encoding="utf-8")
     return src, body.index(RULE) + 1
 
 
 def _eat_the_rule(src, replacement="Tokens are written to 1Password."):
-    lines = src.read_text().splitlines()
+    lines = src.read_text(encoding="utf-8").splitlines()
 
     def reply(who, lo, hi):
         if who != "prose":
@@ -1599,7 +1599,7 @@ def test_r76_an_edit_that_eats_a_rule_is_refused(kv, monkeypatch, tmp_path, caps
     report = capsys.readouterr().out
 
     assert (
-        out.read_text().splitlines()[rule_ln - 1] == RULE
+        out.read_text(encoding="utf-8").splitlines()[rule_ln - 1] == RULE
     ), "the rule was rewritten away"
     assert "states a rule" in report, report
     assert (
@@ -1613,7 +1613,7 @@ def test_r76_the_rest_of_the_run_still_lands(kv, monkeypatch, tmp_path):
     out = tmp_path / "out.md"
     run_canned(kv, monkeypatch, src, out, _eat_the_rule(src))
 
-    assert "The review records each outcome." in out.read_text()
+    assert "The review records each outcome." in out.read_text(encoding="utf-8")
 
 
 def test_r76_a_rule_that_is_only_reworded_is_left_alone(kv, monkeypatch, tmp_path):
@@ -1623,7 +1623,7 @@ def test_r76_a_rule_that_is_only_reworded_is_left_alone(kv, monkeypatch, tmp_pat
     shorter = "Never store a customer token in the request log."
     run_canned(kv, monkeypatch, src, out, _eat_the_rule(src, shorter))
 
-    assert out.read_text().splitlines()[rule_ln - 1] == shorter
+    assert out.read_text(encoding="utf-8").splitlines()[rule_ln - 1] == shorter
 
 
 WRAPPED = [
@@ -1715,7 +1715,7 @@ def test_r76_the_end_of_run_backstop_still_fails(tmp_path):
     catches a loss no single edit explains."""
     src, _ = _rule_doc(tmp_path)
     edited = tmp_path / "edited.md"
-    edited.write_text(src.read_text().replace(RULE, "Tokens are written to 1Password."))
+    edited.write_text(src.read_text(encoding="utf-8").replace(RULE, "Tokens are written to 1Password."), encoding="utf-8")
     r = run_tool("verify", src, edited)
 
     assert r.returncode == 1, r.stdout
@@ -1729,7 +1729,7 @@ def test_r76_the_pipeline_leaves_the_default_profile_behind(kv, monkeypatch, tmp
         "# Call\n\n"
         + "".join(
             f"###### 10:00:{i:02d} alex\n\n{FILLER} {FILLER}\n\n" for i in range(30)
-        )
+        ), encoding="utf-8"
     )
     run_canned(kv, monkeypatch, src, tmp_path / "out.md", lambda *_: [])
 
@@ -1922,7 +1922,7 @@ def test_r71_the_outline_job_may_not_send_one(kv):
 def test_r71_the_report_counts_blocks_apart_from_sections(kv, monkeypatch, tmp_path):
     """End to end, through the real pipeline and the real report."""
     src = tmp_path / "doc.md"
-    src.write_text(LEDE.replace("body.", "It is worth noting that body.") + "\n")
+    src.write_text(LEDE.replace("body.", "It is worth noting that body.") + "\n", encoding="utf-8")
 
     def reply(who, _lo, _hi):
         if who != "structure":
@@ -1939,7 +1939,7 @@ def test_r71_the_report_counts_blocks_apart_from_sections(kv, monkeypatch, tmp_p
 
     out = tmp_path / "out.md"
     run_canned(kv, monkeypatch, src, out, reply)
-    body = out.read_text()
+    body = out.read_text(encoding="utf-8")
 
     assert body.index("lede one.") > body.index("Use tools.")
 
@@ -1950,13 +1950,13 @@ def test_the_run_record_survives_into_accept(kv, monkeypatch, tmp_path, capsys):
     src.write_text(
         "# Policy\n\n## Summary\n\nUse approved tools only.\n\n"
         + "\n\n".join([FILLER] * 20)
-        + "\n"
+        + "\n", encoding="utf-8"
     )
     out = tmp_path / "p.kv.md"
     run_canned(kv, monkeypatch, src, out, lambda *_: [], extra=("--chat",))
     capsys.readouterr()
 
-    record = json.loads((tmp_path / "p.kv.md.kvrun").read_text())
+    record = json.loads((tmp_path / "p.kv.md.kvrun").read_text(encoding="utf-8"))
     assert record["agent"] in kv.LOCAL_AGENTS
     assert record["chat"] is True
     assert record["incomplete"] == []

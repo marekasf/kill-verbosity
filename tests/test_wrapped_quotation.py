@@ -8,7 +8,7 @@ QUOTED = ('the release is, in point of fact, considerably more flaky than '
 
 
 def _plan(tmp_path, body, name="one.md"):
-    (tmp_path / name).write_text(body)
+    (tmp_path / name).write_text(body, encoding="utf-8")
     r = run_tool("plan", tmp_path / name)
     assert r.returncode in (0, 3), (r.returncode, r.stdout + r.stderr)
     return r.stdout
@@ -101,7 +101,7 @@ def test_a_carried_quotation_blanks_only_up_to_its_close(kv):
 
 def test_the_design_notes_still_parse_after_the_carry(kv):
     """A real document: the shipped design notes."""
-    text = (REPO / "docs/how-it-works.md").read_text()
+    text = (REPO / "docs/how-it-works.md").read_text(encoding="utf-8")
     prose, headings, _t, _q = kv.mask(text)
     assert headings, "no heading survived the mask"
     assert sum(1 for p in prose if p.strip()) > 100, "the file went dark"

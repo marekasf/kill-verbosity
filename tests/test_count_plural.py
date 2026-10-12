@@ -23,7 +23,7 @@ def test_count_agrees_with_its_noun(kv):
 def test_a_file_with_one_chunk_and_one_hit_says_so(tmp_path):
     """End to end. The two counts that can be 1 are both in `plan`."""
     doc = tmp_path / "one.md"
-    doc.write_text(ONE)
+    doc.write_text(ONE, encoding="utf-8")
 
     out = run_tool("plan", str(doc)).stdout
 

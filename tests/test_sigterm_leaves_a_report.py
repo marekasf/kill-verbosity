@@ -33,7 +33,7 @@ DOC = "\n".join(
 
 def _run(kv, monkeypatch, tmp_path, capsys):
     src = tmp_path / "doc.md"
-    src.write_text(DOC + "\n")
+    src.write_text(DOC + "\n", encoding="utf-8")
     out = tmp_path / "out.md"
 
     monkeypatch.setattr(kv, "JOBS", 1)
@@ -75,7 +75,7 @@ def test_an_ordinary_run_is_unaffected_by_the_sigterm_plumbing(
     """Control: installing and restoring the handler must not change an
     ordinary run that is never signalled at all."""
     src = tmp_path / "doc.md"
-    src.write_text(DOC + "\n")
+    src.write_text(DOC + "\n", encoding="utf-8")
     out = tmp_path / "out.md"
 
     def launcher(prompt, agent, timeout, say=None, avoid=()):

@@ -29,7 +29,7 @@ BODY = SHORT.rstrip("\n").split("\n")
 def _rename(kv, monkeypatch, tmp_path, who, line, new_heading, name):
     """Let one specialist propose a heading rename, straight through `run`."""
     src = tmp_path / f"{name}.md"
-    src.write_text(SHORT)
+    src.write_text(SHORT, encoding="utf-8")
     out = tmp_path / f"{name}.kv.md"
 
     real_prompt = kv.job_prompt
@@ -50,7 +50,7 @@ def _rename(kv, monkeypatch, tmp_path, who, line, new_heading, name):
     monkeypatch.setattr(
         sys, "argv", ["kill-verbosity", "run", str(src), "-o", str(out)])
     kv.main()
-    return out.read_text()
+    return out.read_text(encoding="utf-8")
 
 
 def test_the_summary_specialist_does_not_run_on_a_short_file(kv, monkeypatch,
@@ -58,7 +58,7 @@ def test_the_summary_specialist_does_not_run_on_a_short_file(kv, monkeypatch,
     """The fixture check. If `summary` ran, the gate tests prove nothing."""
     assert len(SHORT.split()) < kv.SUMMARY_NEEDED_FROM
     src = tmp_path / "f.md"
-    src.write_text(SHORT)
+    src.write_text(SHORT, encoding="utf-8")
     seen = run_canned(kv, monkeypatch, src, tmp_path / "f.kv.md",
                       lambda *_: [])
     assert "summary" not in {who for who, _unit in seen}, seen

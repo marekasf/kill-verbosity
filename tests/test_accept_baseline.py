@@ -37,7 +37,7 @@ def declared_run(kv, monkeypatch, tmp_path):
     from conftest import run_canned
     tree = tmp_path / "tree"
     tree.mkdir()
-    (tree / ".killverbosity.json").write_text(DECL + "\n")
+    (tree / ".killverbosity.json").write_text(DECL + "\n", encoding="utf-8")
     src = tree / "report.md"
     src.write_text(DOC, encoding="utf-8")
     out = tmp_path / "outside" / "report.kv.md"
@@ -47,7 +47,7 @@ def declared_run(kv, monkeypatch, tmp_path):
         run_canned(kv, monkeypatch, src, out, _one_edit(kv))
     ran = buf.getvalue()
     assert out.is_file(), f"the declared run produced no output: {ran[-600:]}"
-    assert out.read_text() != DOC, (
+    assert out.read_text(encoding="utf-8") != DOC, (
         "the canned edit never landed, so every assertion below compares the "
         "file with itself:\n" + ran[-600:])
     return src, out, ran
@@ -84,12 +84,12 @@ def test_a_legacy_baseline_beside_the_input_is_still_found(kv, tmp_path):
     src = tmp_path / "tree" / "report.md"
     src.parent.mkdir()
     src.write_text("# T\n\nThe room was warm and the window faced the garden, "
-                   "and the afternoon went by slowly.\n")
+                   "and the afternoon went by slowly.\n", encoding="utf-8")
     out = tmp_path / "outside" / "report.kv.md"
     out.parent.mkdir()
-    out.write_text("# T\n\nThe room was warm.\n")
+    out.write_text("# T\n\nThe room was warm.\n", encoding="utf-8")
     base = src.with_suffix(f".orig{src.suffix}")
-    base.write_text(src.read_text())
+    base.write_text(src.read_text(encoding="utf-8"), encoding="utf-8")
     kv.write_run_record(out)
     assert not kv.baseline_path(src, out, explicit_out=True).exists()
 
@@ -111,14 +111,14 @@ def test_the_current_layout_wins_over_a_legacy_one_when_both_exist(
     src = tmp_path / "tree" / "report.md"
     src.parent.mkdir()
     src.write_text("# T\n\nThe room was warm and the window faced the garden, "
-                   "and the afternoon went by slowly.\n")
+                   "and the afternoon went by slowly.\n", encoding="utf-8")
     out = tmp_path / "outside" / "report.kv.md"
     out.parent.mkdir()
-    out.write_text("# T\n\nThe room was warm.\n")
+    out.write_text("# T\n\nThe room was warm.\n", encoding="utf-8")
     current = kv.baseline_path(src, out, explicit_out=True)
-    current.write_text(src.read_text())
+    current.write_text(src.read_text(encoding="utf-8"), encoding="utf-8")
     legacy = src.with_suffix(f".orig{src.suffix}")
-    legacy.write_text(src.read_text())
+    legacy.write_text(src.read_text(encoding="utf-8"), encoding="utf-8")
     kv.write_run_record(out)
 
     clause = _baseline_clause(run_tool("accept", src, out).stdout)
@@ -150,8 +150,8 @@ def test_no_baseline_anywhere_still_says_gone(kv, tmp_path):
     src = tmp_path / "hand.md"
     out = tmp_path / "hand.kv.md"
     src.write_text("# T\n\nThe room was warm and the window faced the garden, "
-                   "and the afternoon went by slowly.\n")
-    out.write_text("# T\n\nThe room was warm.\n")
+                   "and the afternoon went by slowly.\n", encoding="utf-8")
+    out.write_text("# T\n\nThe room was warm.\n", encoding="utf-8")
     kv.write_run_record(out)
     said = run_tool("accept", src, out).stdout
     clause = _baseline_clause(said)
@@ -171,7 +171,7 @@ def test_the_declared_runs_own_accept_command_actually_works(declared_run):
     r = run_tool(*printed[1:])
     assert r.returncode == 0, \
         f"the command the report prints does not work: {r.stdout}{r.stderr}"
-    assert src.read_text() == out.read_text(), \
+    assert src.read_text(encoding="utf-8") == out.read_text(encoding="utf-8"), \
         f"the printed command exited 0 and wrote nothing: {r.stdout}"
 
 
@@ -207,10 +207,10 @@ def test_a_real_accept_still_writes(kv, monkeypatch, tmp_path):
     src.write_text(DOC, encoding="utf-8")
     out = tmp_path / "sidecar.kv.md"
     run_canned(kv, monkeypatch, src, out, _one_edit(kv))
-    assert out.read_text() != DOC, "the canned edit never landed"
+    assert out.read_text(encoding="utf-8") != DOC, "the canned edit never landed"
     r = run_tool("accept", src, out)
     assert r.returncode == 0, f"the real accept refused: {r.stdout}{r.stderr}"
-    assert src.read_text() == out.read_text(), "the real accept did not write"
+    assert src.read_text(encoding="utf-8") == out.read_text(encoding="utf-8"), "the real accept did not write"
     assert "nothing was copied" not in r.stdout, \
         "the real accept claims it copied nothing"
 
@@ -223,18 +223,18 @@ def test_accept_writes_in_a_declared_tree_and_keeps_a_numbered_copy(
     """
     from conftest import run_tool
     src, out, _ran = declared_run
-    edited = out.read_text()
+    edited = out.read_text(encoding="utf-8")
     assert edited != DOC
 
     r1 = run_tool("accept", src, out)
     assert r1.returncode == 0, f"accept refused in a declared tree: " \
                                f"{r1.stdout}{r1.stderr}"
-    assert src.read_text() == edited, "accept did not write the declared file"
+    assert src.read_text(encoding="utf-8") == edited, "accept did not write the declared file"
     copy1 = src.with_suffix(f".copy1{src.suffix}")
     assert copy1.is_file(), f"no numbered copy was kept:\n{r1.stdout}"
-    assert copy1.read_text() == DOC, \
+    assert copy1.read_text(encoding="utf-8") == DOC, \
         "the copy does not hold the text accept overwrote"
-    assert copy1.read_text() != edited, \
+    assert copy1.read_text(encoding="utf-8") != edited, \
         "the copy was taken AFTER the write, so it saved nothing"
     assert f"{src.name} → {copy1.name} (copy kept before the write)" \
         in r1.stdout, f"accept kept a copy and did not say where:\n{r1.stdout}"
@@ -245,10 +245,10 @@ def test_accept_writes_in_a_declared_tree_and_keeps_a_numbered_copy(
     assert r2.returncode == 0, f"the second accept refused: {r2.stdout}{r2.stderr}"
     copy2 = src.with_suffix(f".copy2{src.suffix}")
     assert copy2.is_file(), f"the second accept reused a number:\n{r2.stdout}"
-    assert copy2.read_text() == DOC, \
+    assert copy2.read_text(encoding="utf-8") == DOC, \
         "the second copy does not hold the text the second accept overwrote"
-    assert copy1.read_text() == DOC, "the second accept overwrote the first copy"
-    assert src.read_text() == edited, "the second accept did not write"
+    assert copy1.read_text(encoding="utf-8") == DOC, "the second accept overwrote the first copy"
+    assert src.read_text(encoding="utf-8") == edited, "the second accept did not write"
 
 
 def test_the_numbered_copy_is_taken_in_an_undeclared_tree_too(
@@ -261,11 +261,11 @@ def test_the_numbered_copy_is_taken_in_an_undeclared_tree_too(
     src.write_text(DOC, encoding="utf-8")
     out = tmp_path / "sidecar.kv.md"
     run_canned(kv, monkeypatch, src, out, _one_edit(kv))
-    edited = out.read_text()
+    edited = out.read_text(encoding="utf-8")
     assert edited != DOC
 
     r = run_tool("accept", src, out)
     assert r.returncode == 0, f"{r.stdout}{r.stderr}"
     copy1 = src.with_suffix(f".copy1{src.suffix}")
     assert copy1.is_file(), f"no copy in an undeclared tree:\n{r.stdout}"
-    assert copy1.read_text() == DOC, "the copy does not hold the overwritten text"
+    assert copy1.read_text(encoding="utf-8") == DOC, "the copy does not hold the overwritten text"

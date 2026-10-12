@@ -124,8 +124,8 @@ def test_under_three_shared_words_nothing_is_claimed():
 
 def _pair(tmp_path, was, now):
     a, b = tmp_path / "was.md", tmp_path / "now.md"
-    a.write_text(was)
-    b.write_text(now)
+    a.write_text(was, encoding="utf-8")
+    b.write_text(now, encoding="utf-8")
     return a, b
 
 

@@ -35,7 +35,7 @@ def doc(tmp_path):
     for i in range(20):
         out += [f"## Section {i + 1}", "", BODY * 2, ""]
     p = tmp_path / "queue.md"
-    p.write_text("\n".join(out))
+    p.write_text("\n".join(out), encoding="utf-8")
     return p
 
 

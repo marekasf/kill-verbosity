@@ -14,8 +14,8 @@ import killverbosity.runrecord as runrecord
 
 def _pair(tmp_path, text="# Doc\n\nSome prose here.\n"):
     orig, out = tmp_path / "d.md", tmp_path / "d.kv.md"
-    orig.write_text(text)
-    out.write_text(text)
+    orig.write_text(text, encoding="utf-8")
+    out.write_text(text, encoding="utf-8")
     return orig, out
 
 

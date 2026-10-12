@@ -27,8 +27,8 @@ Nothing else in the pipeline needs attention.
 def _verify_quiet(kv, tmp_path, original, edited):
     a = tmp_path / "a.md"
     b = tmp_path / "b.md"
-    a.write_text(original)
-    b.write_text(edited)
+    a.write_text(original, encoding="utf-8")
+    b.write_text(edited, encoding="utf-8")
     buf = io.StringIO()
     with contextlib.redirect_stdout(buf):
         rc = kv.cmd_verify(argparse.Namespace(

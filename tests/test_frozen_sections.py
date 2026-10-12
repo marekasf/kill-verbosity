@@ -55,8 +55,8 @@ def test_the_marked_section_is_never_listed_as_work(tmp_path):
     """The defect. Two long sentences, one em-dash paragraph and one wall sat
     inside the marked section, and the plan listed all four."""
     p = tmp_path / "d.md"
-    p.write_text(_doc())
-    frozen = _frozen_lines(p.read_text())
+    p.write_text(_doc(), encoding="utf-8")
+    frozen = _frozen_lines(p.read_text(encoding="utf-8"))
 
     listed = _flagged(run_tool("plan", p).stdout)
 
@@ -67,8 +67,8 @@ def test_the_same_shapes_outside_it_are_still_listed(tmp_path):
     """The boundary. The filter has to drop a section, not a shape: the three
     paragraphs above the marker carry the same three shapes and stay."""
     p = tmp_path / "d.md"
-    p.write_text(_doc())
-    frozen = _frozen_lines(p.read_text())
+    p.write_text(_doc(), encoding="utf-8")
+    frozen = _frozen_lines(p.read_text(encoding="utf-8"))
 
     listed = _flagged(run_tool("plan", p).stdout)
 
@@ -80,9 +80,9 @@ def test_an_ordinary_heading_freezes_nothing(tmp_path):
     """The other boundary. Same document, heading renamed: every line the
     marked version dropped comes back."""
     marked, plain = tmp_path / "m.md", tmp_path / "p.md"
-    marked.write_text(_doc())
-    plain.write_text(_doc(marker="Notes on the compactor"))
-    section = _frozen_lines(marked.read_text())
+    marked.write_text(_doc(), encoding="utf-8")
+    plain.write_text(_doc(marker="Notes on the compactor"), encoding="utf-8")
+    section = _frozen_lines(marked.read_text(encoding="utf-8"))
 
     with_marker = _flagged(run_tool("plan", marked).stdout)
     without = _flagged(run_tool("plan", plain).stdout)
@@ -96,8 +96,8 @@ def test_a_heading_about_the_marker_is_not_a_marker(tmp_path):
     """`MARKER` is anchored at the start of the heading text so a heading
     explaining the convention does not freeze the section explaining it."""
     p = tmp_path / "d.md"
-    p.write_text(_doc(marker="What NOTE FOR AGENTS means"))
-    section = _frozen_lines(p.read_text(), "What NOTE FOR AGENTS means")
+    p.write_text(_doc(marker="What NOTE FOR AGENTS means"), encoding="utf-8")
+    section = _frozen_lines(p.read_text(encoding="utf-8"), "What NOTE FOR AGENTS means")
 
     listed = _flagged(run_tool("plan", p).stdout)
 
@@ -108,8 +108,8 @@ def test_a_specialist_is_not_asked_to_fix_a_frozen_line(kv, monkeypatch,
                                                         tmp_path):
     """`plan` and `run` build the flag list separately, so both need the fix."""
     p, out = tmp_path / "d.md", tmp_path / "o.md"
-    p.write_text(_doc())
-    frozen = _frozen_lines(p.read_text())
+    p.write_text(_doc(), encoding="utf-8")
+    frozen = _frozen_lines(p.read_text(encoding="utf-8"))
     prompts = []
 
     real = kv.job_prompt

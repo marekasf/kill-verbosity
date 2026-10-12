@@ -42,7 +42,7 @@ def _run(kv, monkeypatch, src, out, calls, verify_rc):
 def test_a_completed_run_that_fails_verify_keeps_its_journal_and_the_rerun_sends_nothing(
         kv, monkeypatch, tmp_path, capsys):
     src, out = tmp_path / "doc.md", tmp_path / "doc.kv.md"
-    src.write_text(DOC + "\n")
+    src.write_text(DOC + "\n", encoding="utf-8")
     first, second = [], []
 
     rc = _run(kv, monkeypatch, src, out, first, verify_rc=1)
@@ -66,7 +66,7 @@ def test_a_completed_run_that_verify_does_not_fail_still_deletes_its_journal(
     """Control: REVIEW can be accepted as it is, so the journal has done its
     job and must not linger beside a keepable output."""
     src, out = tmp_path / "doc.md", tmp_path / "doc.kv.md"
-    src.write_text(DOC + "\n")
+    src.write_text(DOC + "\n", encoding="utf-8")
 
     rc = _run(kv, monkeypatch, src, out, [], verify_rc=None)
     capsys.readouterr()

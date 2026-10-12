@@ -28,8 +28,8 @@ CUT = DOC % ""
 def _excused_as_process(tmp_path, source_line: str) -> bool:
     """Did `verify` file the lost sha under 'cutting those is the job'?"""
     a, b = tmp_path / "orig.md", tmp_path / "new.md"
-    a.write_text(DOC % source_line)
-    b.write_text(CUT)
+    a.write_text(DOC % source_line, encoding="utf-8")
+    b.write_text(CUT, encoding="utf-8")
     return "sat only in a commit ref" in run_tool("verify", a, b).stdout
 
 
@@ -66,7 +66,7 @@ def test_the_shape_scan_and_the_pardon_agree(tmp_path):
     """Both halves in one input, because they are one decision."""
     a = tmp_path / "orig.md"
     a.write_text(DOC % "Source: `ai-assistant-gateway` at `5bb0c2a`, "
-                       "read 9 September.")
+                       "read 9 September.", encoding="utf-8")
 
     planned = run_tool("plan", a).stdout
 

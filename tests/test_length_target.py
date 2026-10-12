@@ -19,7 +19,7 @@ DOC = (f"# Platform notes\n\n## Regions\n\n{CLEAN}\n\n## Review\n\n{DIRTY}\n")
 
 def _run(kv, monkeypatch, tmp_path):
     src = tmp_path / "doc.md"
-    src.write_text(DOC)
+    src.write_text(DOC, encoding="utf-8")
     monkeypatch.setattr(
         kv, "call_agent",
         lambda *a: (json.dumps({"edits": [], "notes": []}), None))
@@ -60,7 +60,7 @@ def test_a_file_sent_whole_says_nothing_about_coverage(kv, monkeypatch,
                                                        tmp_path, capsys):
     """No row when there is nothing to report."""
     src = tmp_path / "doc.md"
-    src.write_text(f"# Notes\n\n{DIRTY}\n")
+    src.write_text(f"# Notes\n\n{DIRTY}\n", encoding="utf-8")
     monkeypatch.setattr(
         kv, "call_agent",
         lambda *a: (json.dumps({"edits": [], "notes": []}), None))

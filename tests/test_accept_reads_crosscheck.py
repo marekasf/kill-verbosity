@@ -22,8 +22,8 @@ WARNED = "Nothing here has crosschecked this output for meaning"
 def _pair(tmp_path, name="hand"):
     src = tmp_path / f"{name}.md"
     out = tmp_path / f"{name}.kv.md"
-    src.write_text(BASE)
-    out.write_text(EDITED)
+    src.write_text(BASE, encoding="utf-8")
+    out.write_text(EDITED, encoding="utf-8")
     return src, out
 
 
@@ -86,7 +86,7 @@ def test_an_unparseable_kvcross_warns_and_still_accepts(kv, tmp_path):
     """
     src, out = _pair(tmp_path)
     kv.write_run_record(out)
-    kv.crosscheck_record_path(out).write_text("not json{\n")
+    kv.crosscheck_record_path(out).write_text("not json{\n", encoding="utf-8")
     assert kv.crosscheck_state(out) == "bad"
 
     r = run_tool("accept", src, out)
@@ -138,7 +138,7 @@ def test_exit_code_never_moves_with_the_crosscheck_state(kv, tmp_path, state):
         old = time.time() - 1000
         os.utime(kv.crosscheck_record_path(out), (old, old))
     elif state == "bad":
-        kv.crosscheck_record_path(out).write_text("not json{\n")
+        kv.crosscheck_record_path(out).write_text("not json{\n", encoding="utf-8")
     elif state == "unavailable":
         kv.write_crosscheck_record(out, backend="codex", answered_by=None,
                                    wrote=["codex"], same_family="unknown",

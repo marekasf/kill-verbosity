@@ -10,8 +10,8 @@ def _pair(tmp_path, original, edited):
     """Write an original and an edit, return both paths."""
     o = tmp_path / "orig.md"
     n = tmp_path / "new.md"
-    o.write_text(original)
-    n.write_text(edited)
+    o.write_text(original, encoding="utf-8")
+    n.write_text(edited, encoding="utf-8")
     return o, n
 
 
@@ -300,8 +300,8 @@ def _after_a_run(kv, tmp_path, source, output):
     """The two files `run` leaves behind: the output and its record."""
     src = tmp_path / "doc.md"
     out = tmp_path / "doc.kv.md"
-    src.write_text(source)
-    out.write_text(output)
+    src.write_text(source, encoding="utf-8")
+    out.write_text(output, encoding="utf-8")
     kv.write_run_record(
         out,
         agent="codex",
@@ -316,12 +316,12 @@ def _after_a_run(kv, tmp_path, source, output):
 
 def test_x1_accept_refuses_when_the_source_changed_after_the_run(kv, tmp_path):
     src, out = _after_a_run(kv, tmp_path, X1_SRC, X1_OUT)
-    src.write_text(X1_SRC + X1_LATER)
+    src.write_text(X1_SRC + X1_LATER, encoding="utf-8")
 
     r = run_tool("accept", src, out, cwd=str(tmp_path))
 
     assert r.returncode != 0, f"accepted anyway:\n{r.stdout}\n{r.stderr}"
-    assert "rollback path" in src.read_text(), "the edit made after the run is gone"
+    assert "rollback path" in src.read_text(encoding="utf-8"), "the edit made after the run is gone"
 
 
 def test_x1_accept_still_works_on_an_untouched_source(kv, tmp_path):
@@ -331,17 +331,17 @@ def test_x1_accept_still_works_on_an_untouched_source(kv, tmp_path):
     r = run_tool("accept", src, out, cwd=str(tmp_path))
 
     assert r.returncode == 0, f"{r.stdout}\n{r.stderr}"
-    assert src.read_text() == X1_OUT
+    assert src.read_text(encoding="utf-8") == X1_OUT
 
 
 def test_x1_force_still_overrules_a_changed_source(kv, tmp_path):
     """KV_FORCE is the one way past it, and it says what it costs."""
     src, out = _after_a_run(kv, tmp_path, X1_SRC, X1_OUT)
-    src.write_text(X1_SRC + X1_LATER)
+    src.write_text(X1_SRC + X1_LATER, encoding="utf-8")
 
     r = run_tool("accept", src, out, cwd=str(tmp_path), force=True)
 
     assert r.returncode == 4, f"{r.stdout}\n{r.stderr}"
-    assert src.read_text() == X1_OUT
+    assert src.read_text(encoding="utf-8") == X1_OUT
     assert "KV_FORCE overruled" in r.stdout, r.stdout
     assert "changed after the run" in r.stdout, r.stdout

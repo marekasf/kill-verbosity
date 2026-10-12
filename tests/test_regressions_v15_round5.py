@@ -13,7 +13,7 @@ pytestmark = pytest.mark.regression
 def _plan(kv, monkeypatch, tmp_path, text, name="doc.md"):
     """`plan` builds the work list without calling any agent."""
     src = tmp_path / name
-    src.write_text(text)
+    src.write_text(text, encoding="utf-8")
     monkeypatch.setattr(sys, "argv", ["kill-verbosity", "plan", str(src)])
     try:
         kv.main()
@@ -23,7 +23,7 @@ def _plan(kv, monkeypatch, tmp_path, text, name="doc.md"):
 
 def _run(kv, monkeypatch, tmp_path, text, reply, name="doc.md"):
     src = tmp_path / name
-    src.write_text(text)
+    src.write_text(text, encoding="utf-8")
     monkeypatch.setattr(
         kv, "call_agent",
         lambda *a: (json.dumps(reply), None))

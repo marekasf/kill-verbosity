@@ -22,8 +22,8 @@ Decisions must be written down.
 
 def _verify(tmp_path, orig, edit, name="t"):
     o, n = tmp_path / f"{name}.md", tmp_path / f"{name}.kv.md"
-    o.write_text(orig)
-    n.write_text(edit)
+    o.write_text(orig, encoding="utf-8")
+    n.write_text(edit, encoding="utf-8")
     return run_tool("verify", o, n)
 
 

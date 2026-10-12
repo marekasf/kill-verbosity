@@ -132,4 +132,4 @@ def test_the_control_a_clean_summary_paragraph_still_lands(kv):
 
 def pathlib_read(rel):
     import pathlib
-    return (pathlib.Path(__file__).parent.parent / rel).read_text()
+    return (pathlib.Path(__file__).parent.parent / rel).read_text(encoding="utf-8")

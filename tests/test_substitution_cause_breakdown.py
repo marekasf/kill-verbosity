@@ -22,7 +22,7 @@ _SUBST_NOTE = ("codex failed, answered by agy instead — "
 
 def _run(kv, monkeypatch, tmp_path, capsys, launcher, *extra_argv):
     src = tmp_path / "doc.md"
-    src.write_text(DOC + "\n")
+    src.write_text(DOC + "\n", encoding="utf-8")
     monkeypatch.setattr(kv, "call_agent", launcher)
     monkeypatch.setattr(kv, "JOBS", 1)
     monkeypatch.setattr(sys, "argv",
@@ -50,5 +50,5 @@ def test_a_substituted_run_prints_no_cause_count_and_no_banner(
         assert "substituted backend" not in text, text
         assert "fail (" not in text, text
         assert "JOBS SUBSTITUTED" not in text, text
-    rec = json.loads(kv.run_record_path(tmp_path / "out.md").read_text())
+    rec = json.loads(kv.run_record_path(tmp_path / "out.md").read_text(encoding="utf-8"))
     assert rec["substituted_jobs"] >= 1, rec

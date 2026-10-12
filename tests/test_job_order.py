@@ -54,7 +54,7 @@ def _shuffled(kv, monkeypatch, seed):
 
 def _run(kv, monkeypatch, tmp_path, seed):
     src = tmp_path / f"d{seed}.md"
-    src.write_text(DOC)
+    src.write_text(DOC, encoding="utf-8")
     out = tmp_path / f"d{seed}.kv.md"
     body = DOC.rstrip("\n").split("\n")
     _shuffled(kv, monkeypatch, seed)
@@ -132,7 +132,7 @@ TIED_TEXT = {
 
 def _run_tied(kv, monkeypatch, tmp_path, name, reverse):
     src = tmp_path / f"{name}.md"
-    src.write_text(TIED)
+    src.write_text(TIED, encoding="utf-8")
     out = tmp_path / f"{name}.kv.md"
     body = TIED.rstrip("\n").split("\n")
     units = []
@@ -164,7 +164,7 @@ def _run_tied(kv, monkeypatch, tmp_path, name, reverse):
         "TIED_TEXT is keyed by unit names the tool no longer emits, so those "
         "jobs returned no edits and there was no tie to observe:\n"
         f"  no longer emitted: {sorted(missing)!r}\n  units seen: {sorted(units)!r}")
-    line = out.read_text().split("\n")[2]
+    line = out.read_text(encoding="utf-8").split("\n")[2]
     assert line in TIED_TEXT.values(), (
         "line 3 of the output is not either job's edit, so the race assertion "
         "would be comparing an untouched line with itself:\n"
@@ -192,7 +192,7 @@ def test_two_jobs_of_one_specialist_do_not_race(kv, monkeypatch, tmp_path):
 def test_an_uncontested_edit_still_lands(kv, monkeypatch, tmp_path):
     """The boundary. Ordering the results must not drop the ones nothing contests."""
     src = tmp_path / "c.md"
-    src.write_text(DOC)
+    src.write_text(DOC, encoding="utf-8")
     out = tmp_path / "c.kv.md"
     body = DOC.rstrip("\n").split("\n")
     line = 8
@@ -206,4 +206,4 @@ def test_an_uncontested_edit_still_lands(kv, monkeypatch, tmp_path):
 
     run_canned(kv, monkeypatch, src, out, reply)
 
-    assert "The queue drains in eight seconds under the current" in out.read_text()
+    assert "The queue drains in eight seconds under the current" in out.read_text(encoding="utf-8")

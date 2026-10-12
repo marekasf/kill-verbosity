@@ -39,7 +39,7 @@ def test_no_kv_markers_in_fixture():
 
 def test_wall_survives_a_kept_sentence_that_opens_it(tmp_path):
     p = tmp_path / "wall.md"
-    p.write_text(FIXTURE)
+    p.write_text(FIXTURE, encoding="utf-8")
 
     r = run_tool("plan", p, "--json")
     assert r.returncode == 0, (r.returncode, r.stdout, r.stderr)
@@ -60,7 +60,7 @@ def test_kept_sentence_itself_stays_silent(tmp_path):
     """The other requirement: no separate "not editable" finding on
     the kept sentence's own line -- silence there, not a candidate."""
     p = tmp_path / "wall.md"
-    p.write_text(FIXTURE)
+    p.write_text(FIXTURE, encoding="utf-8")
 
     r = run_tool("plan", p, "--json")
     assert r.returncode == 0, (r.returncode, r.stdout, r.stderr)

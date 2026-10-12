@@ -13,11 +13,11 @@ DOC = "# Title\n\nThis is a document that is, in point of fact, quite verbose.\n
 
 
 def _tree(tmp_path, declaration):
-    (tmp_path / ".killverbosity.json").write_text(json.dumps(declaration))
+    (tmp_path / ".killverbosity.json").write_text(json.dumps(declaration), encoding="utf-8")
     (tmp_path / "notes").mkdir()
-    (tmp_path / "notes" / "a.md").write_text(DOC)
+    (tmp_path / "notes" / "a.md").write_text(DOC, encoding="utf-8")
     (tmp_path / "other").mkdir()
-    (tmp_path / "other" / "b.md").write_text(DOC)
+    (tmp_path / "other" / "b.md").write_text(DOC, encoding="utf-8")
     return tmp_path
 
 
@@ -62,7 +62,7 @@ def test_a_document_matching_no_target_still_finds_an_outer_declaration(
     """
     root = _tree(tmp_path, {"profile": "general", "targets": ["notes/*.md"]})
     (root.parent / ".killverbosity.json").write_text(
-        json.dumps({"profile": "clinical"}))
+        json.dumps({"profile": "clinical"}), encoding="utf-8")
     try:
         r = run_tool("plan", root / "other" / "b.md")
         assert r.returncode == 0, r.stderr + r.stdout

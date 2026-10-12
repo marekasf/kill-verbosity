@@ -20,7 +20,7 @@ DOC = REPO / "tests" / "fixtures" / "review-findings.md"
 @pytest.fixture
 def doc(tmp_path):
     p = tmp_path / "doc.md"
-    p.write_text(DOC.read_text())
+    p.write_text(DOC.read_text(encoding="utf-8"), encoding="utf-8")
     return p
 
 

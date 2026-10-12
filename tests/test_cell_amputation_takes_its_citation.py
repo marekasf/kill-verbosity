@@ -20,8 +20,8 @@ D6 = ("| D6 | Retire the second runner once the first has been green for a "
 def _pair(tmp_path, edited):
     o = tmp_path / "t.orig.md"
     n = tmp_path / "t.new.md"
-    o.write_text(HEAD + D4 + D5 + D6)
-    n.write_text(edited)
+    o.write_text(HEAD + D4 + D5 + D6, encoding="utf-8")
+    n.write_text(edited, encoding="utf-8")
     return o, n
 
 

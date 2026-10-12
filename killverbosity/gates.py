@@ -46,7 +46,7 @@ def digest(path: Path) -> str:
 
 def _store_read() -> dict:
     try:
-        got = json.loads(trust_store().read_text())
+        got = json.loads(trust_store().read_text(encoding="utf-8"))
         return got if isinstance(got, dict) else {}
     except (OSError, ValueError):
         return {}
@@ -61,7 +61,7 @@ def trust(path: Path) -> str:
     p = trust_store()
     p.parent.mkdir(parents=True, exist_ok=True)
     tmp = p.with_suffix(".tmp")
-    tmp.write_text(json.dumps(store, indent=1, sort_keys=True))
+    tmp.write_text(json.dumps(store, indent=1, sort_keys=True), encoding="utf-8")
     tmp.replace(p)
     return d
 
@@ -84,7 +84,7 @@ def load(path: Path) -> list[dict]:
     """Parse and validate. Raises `Declined` with the reason."""
     path = Path(path)
     try:
-        got = json.loads(path.read_text())
+        got = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError) as e:
         raise Declined(f"{path} could not be read: {e}") from None
     if not isinstance(got, dict) or not isinstance(got.get("gates"), list):

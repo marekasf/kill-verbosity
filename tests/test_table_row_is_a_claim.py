@@ -22,8 +22,8 @@ C3 = ("| c3 | keep | The reviewer disagreed with the disposition and asked "
 def _pair(tmp_path, edited, name="t"):
     o = tmp_path / f"{name}.orig.md"
     n = tmp_path / f"{name}.new.md"
-    o.write_text(HEAD + C1 + C2 + C3)
-    n.write_text(edited)
+    o.write_text(HEAD + C1 + C2 + C3, encoding="utf-8")
+    n.write_text(edited, encoding="utf-8")
     return o, n
 
 
@@ -43,8 +43,8 @@ def test_the_same_deletion_in_prose_and_in_a_cell_score_the_same(tmp_path):
              "write-only and the eviction policy is unreachable.")
     po = tmp_path / "p.orig.md"
     pn = tmp_path / "p.new.md"
-    po.write_text(f"# Findings\n\nSome ordinary prose here.\n\n{claim}\n")
-    pn.write_text("# Findings\n\nSome ordinary prose here.\n\nCache unused.\n")
+    po.write_text(f"# Findings\n\nSome ordinary prose here.\n\n{claim}\n", encoding="utf-8")
+    pn.write_text("# Findings\n\nSome ordinary prose here.\n\nCache unused.\n", encoding="utf-8")
     prose = run_tool("verify", po, pn)
 
     assert cell.returncode == prose.returncode == 3, (cell.returncode,
@@ -98,10 +98,10 @@ def test_one_gutted_row_among_many_is_still_reported(tmp_path):
             for i, s in enumerate(subjects, 1)]
     o = tmp_path / "big.orig.md"
     n = tmp_path / "big.new.md"
-    o.write_text(HEAD + "".join(rows))
+    o.write_text(HEAD + "".join(rows), encoding="utf-8")
     gutted = list(rows)
     gutted[9] = "| r10 | keep | Retry issue. |\n"
-    n.write_text(HEAD + "".join(gutted))
+    n.write_text(HEAD + "".join(gutted), encoding="utf-8")
     r = run_tool("verify", o, n)
     assert r.returncode == 3, (r.returncode, r.stdout)
     assert "content dropped" in r.stdout, r.stdout
@@ -112,8 +112,8 @@ def test_a_token_cut_from_a_row_that_stayed_is_still_a_hard_failure(tmp_path):
     n = tmp_path / "s.new.md"
     body = (HEAD + "| c1 | keep | See `retry.py` for the loop. The retry loop "
                    "never resets its backoff between attempts. |\n" + C3)
-    o.write_text(body)
-    n.write_text(body.replace("See `retry.py` for the loop. ", ""))
+    o.write_text(body, encoding="utf-8")
+    n.write_text(body.replace("See `retry.py` for the loop. ", ""), encoding="utf-8")
     r = run_tool("verify", o, n)
     assert r.returncode == 1, (r.returncode, r.stdout)
     assert "TOKENS LOST" in r.stdout and "retry.py" in r.stdout, r.stdout
@@ -125,8 +125,8 @@ def test_a_whole_table_of_token_only_rows_deleted_is_pardoned(tmp_path):
     o.write_text("# Request\n\nI need access.\n\n"
                  "| API | Result |\n|---|---|\n"
                  "| `dlp.googleapis.com/v2/content:inspect` | 403 DENIED |\n"
-                 "| `modelarmor.googleapis.com/v1/templates` | 403 DENIED |\n")
-    n.write_text("# Request\n\nI need access.\n")
+                 "| `modelarmor.googleapis.com/v1/templates` | 403 DENIED |\n", encoding="utf-8")
+    n.write_text("# Request\n\nI need access.\n", encoding="utf-8")
     r = run_tool("verify", o, n)
     assert r.returncode != 1, (r.returncode, r.stdout)
     assert "TOKENS LOST" not in r.stdout, r.stdout
@@ -167,11 +167,11 @@ def test_a_deleted_row_does_not_buy_a_pardon_for_a_surgical_one(tmp_path):
         "| id | note |\n|---|---|\n"
         "| c1 | See `retry.py` for the loop, which never resets its "
         "backoff between attempts. |\n"
-        "| c2 | `dlp.googleapis.com/v2/content:inspect` returns 403. |\n")
+        "| c2 | `dlp.googleapis.com/v2/content:inspect` returns 403. |\n", encoding="utf-8")
     n.write_text(
         "# Findings\n\nSome ordinary prose here.\n\n"
         "| id | note |\n|---|---|\n"
-        "| c1 | The loop never resets its backoff between attempts. |\n")
+        "| c1 | The loop never resets its backoff between attempts. |\n", encoding="utf-8")
     r = run_tool("verify", o, n)
     assert r.returncode == 1, (r.returncode, r.stdout)
     assert "TOKENS LOST" in r.stdout, r.stdout
@@ -197,10 +197,10 @@ def test_the_survivor_claims_its_own_row_and_not_the_first_one_free(tmp_path):
                  + "| c1 | `dlp.googleapis.com/v2/content:inspect` returns "
                    "403 for the notebook identity. |\n"
                  + "| c2 | See `retry.py`, whose loop never resets its "
-                   "backoff between attempts. |\n")
+                   "backoff between attempts. |\n", encoding="utf-8")
     n.write_text(head
                  + "| c2 | The loop never resets its backoff between "
-                   "attempts. |\n")
+                   "attempts. |\n", encoding="utf-8")
     r = run_tool("verify", o, n)
     assert r.returncode == 1, (r.returncode, r.stdout)
     assert "retry.py" in r.stdout, r.stdout

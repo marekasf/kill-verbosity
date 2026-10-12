@@ -37,7 +37,7 @@ def _hit_lines(out):
 
 def test_plan_accepts_a_freeze_block_and_protects_it(tmp_path):
     p = tmp_path / "doc.md"
-    p.write_text(DOC)
+    p.write_text(DOC, encoding="utf-8")
     r = run_tool("plan", p)
     assert r.returncode == 0, (r.returncode, r.stdout, r.stderr)
     assert "not a marker" not in r.stderr, r.stderr
@@ -48,17 +48,17 @@ def test_plan_accepts_a_freeze_block_and_protects_it(tmp_path):
 
 def test_run_no_agents_accepts_a_freeze_block(tmp_path):
     p = tmp_path / "doc.md"
-    p.write_text(DOC)
+    p.write_text(DOC, encoding="utf-8")
     r = run_tool("run", p, "--no-agents")
     assert r.returncode != 2, (r.returncode, r.stdout, r.stderr)
     assert "not a marker" not in r.stderr, r.stderr
     out = tmp_path / "doc.kv.md"
-    assert out.read_text() == DOC
+    assert out.read_text(encoding="utf-8") == DOC
 
 
 def test_a_misspelled_freeze_marker_is_still_refused(tmp_path):
     p = tmp_path / "doc.md"
-    p.write_text(DOC.replace("kv:freeze", "kv:freez"))
+    p.write_text(DOC.replace("kv:freeze", "kv:freez"), encoding="utf-8")
     r = run_tool("plan", p)
     assert r.returncode == 2, (r.returncode, r.stdout, r.stderr)
     assert "'kv:freez', which is not a marker" in r.stderr, r.stderr

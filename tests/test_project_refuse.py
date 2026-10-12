@@ -82,11 +82,11 @@ def _notice(stderr, target: Path, matched: str, config: Path, reason: str,
 def _tree(tmp_path):
     """A whole-tree declaration: the bare-string form of `refuse`."""
     (tmp_path / ".killverbosity.json").write_text(
-        json.dumps({"refuse": "the trackers here are parsed line by line"}))
+        json.dumps({"refuse": "the trackers here are parsed line by line"}), encoding="utf-8")
     (tmp_path / "docs").mkdir()
-    (tmp_path / "docs" / "note.md").write_text(DOC)
+    (tmp_path / "docs" / "note.md").write_text(DOC, encoding="utf-8")
     (tmp_path / "state").mkdir()
-    (tmp_path / "state" / "ledger.md").write_text(DOC)
+    (tmp_path / "state" / "ledger.md").write_text(DOC, encoding="utf-8")
     return tmp_path
 
 
@@ -94,11 +94,11 @@ def _scoped(tmp_path):
     """The object form: only `state/*.md` is named."""
     (tmp_path / ".killverbosity.json").write_text(json.dumps(
         {"refuse": {"paths": ["state/*.md"],
-                    "reason": "the trackers here are parsed line by line"}}))
+                    "reason": "the trackers here are parsed line by line"}}), encoding="utf-8")
     (tmp_path / "docs").mkdir()
-    (tmp_path / "docs" / "note.md").write_text(DOC)
+    (tmp_path / "docs" / "note.md").write_text(DOC, encoding="utf-8")
     (tmp_path / "state").mkdir()
-    (tmp_path / "state" / "ledger.md").write_text(DOC)
+    (tmp_path / "state" / "ledger.md").write_text(DOC, encoding="utf-8")
     return tmp_path
 
 
@@ -138,7 +138,7 @@ def test_an_undeclared_tree_gets_the_same_files(tmp_path):
     """CONTROL for the test above: this is what "as in any other tree" means."""
     (tmp_path / "docs").mkdir()
     doc = tmp_path / "docs" / "note.md"
-    doc.write_text(DOC)
+    doc.write_text(DOC, encoding="utf-8")
 
     r = run_tool("run", doc, "--no-agents")
     assert r.returncode == 0, r.stderr + r.stdout
@@ -151,7 +151,7 @@ def test_no_notice_at_all_when_nothing_is_declared(tmp_path):
     """CONTROL. The notice must be a consequence of the DECLARATION."""
     (tmp_path / "docs").mkdir()
     doc = tmp_path / "docs" / "note.md"
-    doc.write_text(DOC)
+    doc.write_text(DOC, encoding="utf-8")
 
     r = run_tool("plan", doc)
     assert r.returncode == 0, r.stderr + r.stdout
@@ -185,7 +185,7 @@ def test_verify_is_unaffected_and_still_reaches_a_verdict(tmp_path):
     root = _tree(tmp_path)
     doc = root / "docs" / "note.md"
     edited = root / "docs" / "note.kv.md"
-    edited.write_text("# Title\n\nThis is short.\n")
+    edited.write_text("# Title\n\nThis is short.\n", encoding="utf-8")
 
     r = run_tool("verify", doc, edited)
     _notice(r.stderr, doc, "<whole tree>", root / ".killverbosity.json",
@@ -227,7 +227,7 @@ def test_the_whole_tree_form_still_claims_the_whole_tree(tmp_path):
 def test_the_nearest_killverbosity_json_wins(tmp_path):
     """The one claim that survives from the deleted remedy test."""
     root = _tree(tmp_path)
-    (root / "docs" / ".killverbosity.json").write_text("{}")
+    (root / "docs" / ".killverbosity.json").write_text("{}", encoding="utf-8")
 
     near = run_tool("plan", root / "docs" / "note.md")
     assert near.returncode == 0, near.stderr + near.stdout
@@ -252,7 +252,7 @@ def test_accept_reaches_its_own_precondition_and_not_a_declaration_refusal(
             REASON, where="accept")
     assert r.returncode == 2, r.stderr
     assert "no run output" in r.stderr, r.stderr
-    assert doc.read_text() == DOC, "accept wrote a file it had nothing for"
+    assert doc.read_text(encoding="utf-8") == DOC, "accept wrote a file it had nothing for"
 
 
 
@@ -302,8 +302,8 @@ def test_KV_FORCE_is_no_longer_part_of_the_declaration(tmp_path):
 def test_a_malformed_scoped_refusal_says_which_half_is_wrong(tmp_path):
     """UNCHANGED by the ruling, and the reason it is not a contradiction of it."""
     (tmp_path / ".killverbosity.json").write_text(
-        json.dumps({"refuse": {"paths": [], "reason": "x"}}))
-    (tmp_path / "note.md").write_text(DOC)
+        json.dumps({"refuse": {"paths": [], "reason": "x"}}), encoding="utf-8")
+    (tmp_path / "note.md").write_text(DOC, encoding="utf-8")
 
     r = run_tool("run", tmp_path / "note.md")
     assert r.returncode == 2, r.stderr
@@ -315,12 +315,12 @@ def test_freeze_still_parses_and_still_holds_beside_a_refuse(tmp_path):
     """`freeze` is untouched and is a DIFFERENT thing: it holds TEXT."""
     root = _tree(tmp_path)
     doc = root / "docs" / "note.md"
-    doc.write_text(DOC + "\n| a | b |\n| - | - |\n")
+    doc.write_text(DOC + "\n| a | b |\n| - | - |\n", encoding="utf-8")
     (root / ".killverbosity.json").write_text(json.dumps(
         {"refuse": REASON,
          "freeze": {"paths": ["docs/note.md"],
                     "lines": [r"^\| "],
-                    "reason": "the table rows are read by line"}}))
+                    "reason": "the table rows are read by line"}}), encoding="utf-8")
 
     r = run_tool("run", doc, "--no-agents")
     assert r.returncode == 0, r.stderr + r.stdout

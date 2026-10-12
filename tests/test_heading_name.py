@@ -41,8 +41,8 @@ ABSENT = ("The run found two things (15. The window, and who owns it) and\n"
 def _verify(kv, tmp_path, edited, original=None):
     o = tmp_path / "o.md"
     n = tmp_path / "n.md"
-    o.write_text(_doc(original if original is not None else CLEAN))
-    n.write_text(_doc(edited))
+    o.write_text(_doc(original if original is not None else CLEAN), encoding="utf-8")
+    n.write_text(_doc(edited), encoding="utf-8")
     buf = io.StringIO()
     with contextlib.redirect_stdout(buf):
         rc = kv.cmd_verify(argparse.Namespace(
@@ -127,7 +127,7 @@ MARKED = ("# Marked report\n"
 def _outline(kv, monkeypatch, tmp_path, text):
     """The outline block out of a real prompt, as a specialist receives it."""
     src = tmp_path / "d.md"
-    src.write_text(text)
+    src.write_text(text, encoding="utf-8")
     seen = []
     real = kv.job_prompt
 
@@ -163,7 +163,7 @@ def test_b_the_control_a_marker_the_author_wrote_in_prose_survives(
 
     prompts, src = _outline(kv, monkeypatch, tmp_path, MARKED)
     out = tmp_path / "d.kv.md"
-    assert "kv:keep" in out.read_text()
+    assert "kv:keep" in out.read_text(encoding="utf-8")
     assert "The author protected this one themselves.  <!-- kv:keep -->" \
         in prompts
 
@@ -281,7 +281,7 @@ RENAME_DOC = ("# Marked report\n\n"
 
 def _canned_rename_run(kv, monkeypatch, tmp_path, pointer):
     src = tmp_path / "x.md"
-    src.write_text(RENAME_DOC)
+    src.write_text(RENAME_DOC, encoding="utf-8")
     head_line = next(i for i, l in enumerate(RENAME_DOC.split("\n"), 1)
                      if l.startswith("## The goal"))
 

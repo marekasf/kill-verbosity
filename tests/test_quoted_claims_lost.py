@@ -109,8 +109,8 @@ than a blank.
 
 def _verify(tmp_path, orig, edit, name="new.md"):
     o, n = tmp_path / "orig.md", tmp_path / name
-    o.write_text(orig)
-    n.write_text(edit)
+    o.write_text(orig, encoding="utf-8")
+    n.write_text(edit, encoding="utf-8")
     return run_tool("verify", o, n)
 
 
@@ -167,14 +167,14 @@ def test_the_runs_own_kvrun_exempt_list_pardons_a_dropped_quote(
     """The existing pardon mechanism, not a new one."""
     o = tmp_path / "orig.md"
     n = tmp_path / "new.md"
-    o.write_text(QUOTE_ORIG)
-    n.write_text(QUOTE_EDIT)
+    o.write_text(QUOTE_ORIG, encoding="utf-8")
+    n.write_text(QUOTE_EDIT, encoding="utf-8")
     quote_a = ('"a precise number built on the wrong finish line is '
                'worse"')
     quote_b = ('"a misleading number encourages teams to generate '
                'unhelpful code."')
     (tmp_path / "new.md.kvrun").write_text(json.dumps(
-        {"exempt": [quote_a, quote_b]}))
+        {"exempt": [quote_a, quote_b]}), encoding="utf-8")
 
     r = run_tool("verify", o, n)
 

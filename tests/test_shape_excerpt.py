@@ -19,7 +19,7 @@ def _rows(out):
 
 def test_two_sentences_that_open_alike_print_different_rows(tmp_path):
     doc = tmp_path / "two.md"
-    doc.write_text(TWO)
+    doc.write_text(TWO, encoding="utf-8")
 
     rows = _rows(run_tool("plan", str(doc)).stdout)
 
@@ -34,7 +34,7 @@ def test_two_hits_on_one_line_print_different_rows(tmp_path):
     match every time printed the identical row twice, which is the fault."""
     doc = tmp_path / "same.md"
     doc.write_text("# T\n\nIt is worth noting that the queue drains slowly. "
-                   "It is worth noting that the retry budget is three.\n")
+                   "It is worth noting that the retry budget is three.\n", encoding="utf-8")
 
     rows = _rows(run_tool("plan", str(doc)).stdout)
 
@@ -49,7 +49,7 @@ def test_the_excerpt_stops_at_the_end_of_its_sentence(tmp_path):
     as part of the hit and sends the reader to fix text nothing flagged."""
     doc = tmp_path / "one.md"
     doc.write_text("# T\n\nIt is worth noting that the queue is slow. "
-                   "The operator is paged after the retry budget expires.\n")
+                   "The operator is paged after the retry budget expires.\n", encoding="utf-8")
 
     row = _rows(run_tool("plan", str(doc)).stdout)[0]
 
@@ -63,9 +63,9 @@ def test_the_surviving_list_tells_two_hits_on_one_line_apart(tmp_path):
     on the one list that asks the reader to decide about each hit."""
     orig = tmp_path / "a.md"
     orig.write_text("# T\n\nThe clean index URL hides the token. "
-                    "The clean report shows the retry.\n")
+                    "The clean report shows the retry.\n", encoding="utf-8")
     edited = tmp_path / "b.md"
-    edited.write_text(orig.read_text())
+    edited.write_text(orig.read_text(encoding="utf-8"), encoding="utf-8")
 
     row = [l for l in run_tool("verify", str(orig), str(edited)).stdout
            .splitlines() if "evaluative adjective (" in l][0]

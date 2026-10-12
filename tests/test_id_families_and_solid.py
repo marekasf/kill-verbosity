@@ -85,8 +85,8 @@ def test_a_tree_that_has_ALREADY_tuned_id_families_is_not_lectured(doc, tmp_path
     """The control, and the half that decides whether this is a note or noise."""
     p = doc(IDS)
     (tmp_path / "kv.json").write_text(
-        '{"name": "added", "id_families": {"add": ["ZZ-\\\\d+"]}}\n')
-    (tmp_path / ".killverbosity.json").write_text('{"profile": "./kv.json"}\n')
+        '{"name": "added", "id_families": {"add": ["ZZ-\\\\d+"]}}\n', encoding="utf-8")
+    (tmp_path / ".killverbosity.json").write_text('{"profile": "./kv.json"}\n', encoding="utf-8")
     out = run_tool("plan", p).stdout
     assert "bare internal id 2" in out, out
     assert NOTE not in out, out
@@ -104,8 +104,8 @@ def test_a_relative_profile_path_resolves_from_ANY_directory(doc, tmp_path):
     which is why the search for it runs from the DOCUMENT and not the working
     directory. `refuse`'s globs already held this."""
     p = doc(IDS)
-    (tmp_path / "kv.json").write_text('{"name": "mine"}\n')
-    (tmp_path / ".killverbosity.json").write_text('{"profile": "./kv.json"}\n')
+    (tmp_path / "kv.json").write_text('{"name": "mine"}\n', encoding="utf-8")
+    (tmp_path / ".killverbosity.json").write_text('{"profile": "./kv.json"}\n', encoding="utf-8")
     from_own = run_tool("plan", "doc.md", cwd=tmp_path)
     from_elsewhere = run_tool("plan", p, cwd=tmp_path.parent)
     for r in (from_own, from_elsewhere):
@@ -118,7 +118,7 @@ def test_a_shipped_profile_NAME_is_still_a_name_and_not_a_path(doc, tmp_path):
     """The control. Resolving every value against the declaring file would turn
     `{"profile": "legal"}` into a path that does not exist."""
     p = doc(IDS)
-    (tmp_path / ".killverbosity.json").write_text('{"profile": "legal"}\n')
+    (tmp_path / ".killverbosity.json").write_text('{"profile": "legal"}\n', encoding="utf-8")
     r = run_tool("plan", p, cwd=tmp_path.parent)
     assert r.returncode == 0, r.stderr
     assert "profile legal" in r.stderr, r.stderr
@@ -129,7 +129,7 @@ def test_a_missing_relative_profile_names_the_path_it_looked_in(doc, tmp_path):
     names, which reads as "yours does not exist" rather than "I looked in the
     wrong place"."""
     p = doc(IDS)
-    (tmp_path / ".killverbosity.json").write_text('{"profile": "./gone.json"}\n')
+    (tmp_path / ".killverbosity.json").write_text('{"profile": "./gone.json"}\n', encoding="utf-8")
     r = run_tool("plan", p, cwd=tmp_path.parent)
     assert r.returncode == 2
     assert str(tmp_path / "gone.json") in r.stderr, r.stderr

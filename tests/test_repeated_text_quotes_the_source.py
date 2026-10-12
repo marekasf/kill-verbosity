@@ -36,7 +36,7 @@ def _plan(kv, monkeypatch, capsys, path):
 def test_plan_quotes_a_repeat_as_the_author_wrote_it(kv, monkeypatch, capsys,
                                                     tmp_path):
     p = tmp_path / "doc.md"
-    p.write_text(DOC)
+    p.write_text(DOC, encoding="utf-8")
     out = _plan(kv, monkeypatch, capsys, p)
 
     row = next((r for r in out.splitlines()

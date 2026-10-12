@@ -31,8 +31,8 @@ DROPPED = ORIGINAL.replace("<!-- kv:allow-shape frame -->\n\n", "")
 def _pair(tmp_path, edited):
     orig = tmp_path / "orig.md"
     out = tmp_path / "orig.kv.md"
-    orig.write_text(ORIGINAL)
-    out.write_text(edited)
+    orig.write_text(ORIGINAL, encoding="utf-8")
+    out.write_text(edited, encoding="utf-8")
     return orig, out
 
 
@@ -71,11 +71,11 @@ def test_the_marker_is_still_read_off_the_edited_file(tmp_path):
     orig = tmp_path / "orig.md"
     out = tmp_path / "orig.kv.md"
     orig.write_text(base.replace("<!-- kv:allow-shape frame -->",
-                                 "<!-- kv:allow-shape hedge -->"))
+                                 "<!-- kv:allow-shape hedge -->"), encoding="utf-8")
     out.write_text(base.replace(
         "## Why it matters",
         "It is worth noting that a frame opens a sentence with nothing in it.\n"
-        "\n## Why it matters"))
+        "\n## Why it matters"), encoding="utf-8")
 
     res = run_tool("verify", orig, out)
 

@@ -21,7 +21,7 @@ TRANSCRIPT = f"# Weekly sync transcript\n\n{TURNS}\n"
 
 def _run(kv, monkeypatch, tmp_path, text, name="doc.md", reply=None):
     src = tmp_path / name
-    src.write_text(text)
+    src.write_text(text, encoding="utf-8")
     monkeypatch.setattr(
         kv, "call_agent",
         lambda *a: (json.dumps(reply or {"edits": [], "notes": []}), None))

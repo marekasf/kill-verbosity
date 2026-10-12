@@ -37,7 +37,7 @@ def _has_number(rea):
 
 def test_no_prior_run_prints_bound_only(tmp_path):
     p = tmp_path / "log.md"
-    p.write_text(DOC)
+    p.write_text(DOC, encoding="utf-8")
     r = run_tool("plan", p)
     assert r.returncode == 0, (r.returncode, r.stdout, r.stderr)
     exp, rea = _lines(r.stdout)
@@ -47,7 +47,7 @@ def test_no_prior_run_prints_bound_only(tmp_path):
 
 def test_prior_run_prints_both_numbers(kv, monkeypatch, tmp_path):
     p = tmp_path / "log.md"
-    p.write_text(DOC)
+    p.write_text(DOC, encoding="utf-8")
     out = p.with_suffix(".kv.md")
 
     def reply(_who, lo, hi):
@@ -61,7 +61,7 @@ def test_prior_run_prints_both_numbers(kv, monkeypatch, tmp_path):
     run_canned(kv, monkeypatch, p, out, reply)
     assert out.is_file(), "the canned run did not write the default output"
     before = kv.word_count(DOC)
-    after = kv.word_count(out.read_text())
+    after = kv.word_count(out.read_text(encoding="utf-8"))
     assert after < before, "the canned run did not remove anything to measure"
 
     r = run_tool("plan", p)
@@ -87,7 +87,7 @@ def test_run_dry_run_prints_the_same_realised_line(kv, monkeypatch, tmp_path):
     import io
 
     p = tmp_path / "log.md"
-    p.write_text(DOC)
+    p.write_text(DOC, encoding="utf-8")
     out = p.with_suffix(".kv.md")
 
     def reply(_who, lo, hi):
@@ -116,7 +116,7 @@ def test_run_dry_run_prints_the_same_realised_line(kv, monkeypatch, tmp_path):
 
 def test_stale_input_is_flagged_not_presented_as_current(kv, monkeypatch, tmp_path):
     p = tmp_path / "log.md"
-    p.write_text(DOC)
+    p.write_text(DOC, encoding="utf-8")
     out = p.with_suffix(".kv.md")
 
     def reply(_who, lo, hi):
@@ -128,7 +128,7 @@ def test_stale_input_is_flagged_not_presented_as_current(kv, monkeypatch, tmp_pa
                 if DOC.split("\n")[n - 1].startswith("It is worth noting")]
 
     run_canned(kv, monkeypatch, p, out, reply)
-    p.write_text(DOC + "\nOne more paragraph added after the run.\n")
+    p.write_text(DOC + "\nOne more paragraph added after the run.\n", encoding="utf-8")
 
     r = run_tool("plan", p)
     assert r.returncode == 0, (r.returncode, r.stdout, r.stderr)
@@ -143,7 +143,7 @@ def test_mtime_stale_record_is_flagged(kv, monkeypatch, tmp_path):
     """The record is older than its own output -- something touched the
     output after the run wrote it, so its number is not to be trusted."""
     p = tmp_path / "log.md"
-    p.write_text(DOC)
+    p.write_text(DOC, encoding="utf-8")
     out = p.with_suffix(".kv.md")
 
     def reply(_who, lo, hi):

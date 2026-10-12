@@ -16,8 +16,8 @@ WARNED = "Nothing here has crosschecked this output for meaning"
 def _pair(tmp_path, name="hand"):
     src = tmp_path / f"{name}.md"
     out = tmp_path / f"{name}.kv.md"
-    src.write_text(BASE)
-    out.write_text(EDITED)
+    src.write_text(BASE, encoding="utf-8")
+    out.write_text(EDITED, encoding="utf-8")
     return src, out
 
 
@@ -30,7 +30,7 @@ def test_dry_run_prints_the_same_notice_the_real_accept_does(kv, tmp_path):
     assert dry.returncode == 0, dry.stdout + dry.stderr
     assert WARNED in dry.stdout, dry.stdout
     assert "no .kvcross sidecar exists" in dry.stdout, dry.stdout
-    assert src.read_text() == BASE
+    assert src.read_text(encoding="utf-8") == BASE
 
 
 def test_dry_run_prints_nothing_extra_when_the_crosscheck_is_ok(kv, tmp_path):

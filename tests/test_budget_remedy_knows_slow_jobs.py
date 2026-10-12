@@ -32,7 +32,7 @@ def _dry(kv, monkeypatch, capsys, src, out):
 def test_a_job_that_timed_out_withdraws_the_lower_job_timeout_remedy(
         kv, monkeypatch, tmp_path, capsys):
     src, out = tmp_path / "doc.md", tmp_path / "doc.kv.md"
-    src.write_text(DOC + "\n")
+    src.write_text(DOC + "\n", encoding="utf-8")
 
     before = _dry(kv, monkeypatch, capsys, src, out)
     assert "or lower --job-timeout to" in before, before
@@ -52,7 +52,7 @@ def test_a_short_clock_kill_is_not_banked_as_slow(kv, monkeypatch, tmp_path,
                                                   capsys):
     """Control: a job the RUN starved is not evidence the job is slow."""
     src, out = tmp_path / "doc.md", tmp_path / "doc.kv.md"
-    src.write_text(DOC + "\n")
+    src.write_text(DOC + "\n", encoding="utf-8")
 
     def other(prompt, agent, timeout, say=None, avoid=()):
         return "", f"{agent} exited 1: boom"

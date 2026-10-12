@@ -43,8 +43,8 @@ DELETED = (ORIG.replace(" Dana asked this on line 66.", "")
 
 def _reported(tmp_path, new_text: str) -> str:
     a, b = tmp_path / "orig.md", tmp_path / "new.md"
-    a.write_text(ORIG)
-    b.write_text(new_text)
+    a.write_text(ORIG, encoding="utf-8")
+    b.write_text(new_text, encoding="utf-8")
     for line in run_tool("verify", a, b).stdout.splitlines():
         if "said fewer times than before" in line:
             return line.strip()

@@ -25,7 +25,7 @@ LONG = re.compile(r"long sentences \d+ → \d+", re.M)
 
 def _pair(tmp_path):
     doc = tmp_path / "doc.md"
-    doc.write_text(CHECKLIST)
+    doc.write_text(CHECKLIST, encoding="utf-8")
     r = run_tool("run", doc, "--no-agents")
     assert (tmp_path / "doc.kv.md").is_file(), r.stdout + r.stderr
     return doc, tmp_path / "doc.kv.md", r
@@ -66,7 +66,7 @@ def test_the_premise_the_document_is_read_as_a_checklist(tmp_path):
 def test_the_run_record_carries_the_genre(tmp_path):
     _doc, out, _run = _pair(tmp_path)
 
-    record = json.loads((out.parent / (out.name + ".kvrun")).read_text())
+    record = json.loads((out.parent / (out.name + ".kvrun")).read_text(encoding="utf-8"))
 
     assert record["genre"] == "checklist", record
 
@@ -103,7 +103,7 @@ def test_a_named_profile_still_wins(tmp_path):
     would have it overwritten by whatever the run happened to detect."""
     doc, out, _run = _pair(tmp_path)
     (tmp_path / ".killverbosity.json").write_text(
-        json.dumps({"profile": "clinical"}))
+        json.dumps({"profile": "clinical"}), encoding="utf-8")
 
     standalone = run_tool("verify", doc, out)
 
@@ -118,7 +118,7 @@ def test_plan_reads_the_document_as_the_same_kind_as_run(tmp_path):
     read it as a checklist -- 40 of 120 raw lines is a third, 40 of 40 folded
     ones is all of it."""
     doc = tmp_path / "doc.md"
-    doc.write_text(CHECKLIST)
+    doc.write_text(CHECKLIST, encoding="utf-8")
 
     plan = run_tool("plan", doc)
     run = run_tool("run", doc, "--no-agents")
@@ -132,7 +132,7 @@ def test_the_mix_beside_the_verdict_is_what_the_verdict_was_taken_on(tmp_path):
     lines as the decision. It read `checklist 40 of 120 body lines` beside a
     verdict taken on 40 of 40."""
     doc = tmp_path / "doc.md"
-    doc.write_text(CHECKLIST)
+    doc.write_text(CHECKLIST, encoding="utf-8")
 
     plan = run_tool("plan", doc)
 
@@ -150,8 +150,8 @@ def test_verify_puts_back_the_profile_it_loaded(kv, tmp_path):
     import argparse
 
     doc, out = tmp_path / "doc.md", tmp_path / "doc.kv.md"
-    doc.write_text(CHECKLIST)
-    out.write_text(CHECKLIST)
+    doc.write_text(CHECKLIST, encoding="utf-8")
+    out.write_text(CHECKLIST, encoding="utf-8")
 
     assert kv.PROFILE_NAME == "default"
     kv.cmd_verify(argparse.Namespace(original=str(doc), edited=str(out),

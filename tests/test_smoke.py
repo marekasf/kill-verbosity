@@ -52,7 +52,7 @@ def test_the_tool_imports_only_the_standard_library():
         "print(json.dumps(sorted(outside() - before)))"
     )
     r = subprocess.run(
-        [sys.executable, "-c", probe], capture_output=True, text=True
+        [sys.executable, "-c", probe], capture_output=True, text=True, encoding="utf-8"
     )
     assert r.returncode == 0, r.stderr
     assert json.loads(r.stdout) == [], (
@@ -66,10 +66,10 @@ def test_every_shipped_profile_loads_and_compiles(kv, tmp_path):
     profiles = sorted(kv.PROFILE_DIR.glob("*.json"))
     assert profiles, f"no profiles found in {kv.PROFILE_DIR}"
     doc = tmp_path / "readme.md"
-    doc.write_text((REPO / "SKILL.md").read_text())
+    doc.write_text((REPO / "SKILL.md").read_text(encoding="utf-8"), encoding="utf-8")
     cfg = tmp_path / ".killverbosity.json"
     for p in profiles:
-        cfg.write_text(json.dumps({"profile": p.stem}))
+        cfg.write_text(json.dumps({"profile": p.stem}), encoding="utf-8")
         r = run_tool("plan", doc, "--json")
         assert r.returncode == 0, f"profile {p.stem} failed to load: {r.stderr}"
 
@@ -118,9 +118,9 @@ def test_the_project_file_is_found_from_the_document_not_the_shell(tmp_path):
     its own folder and from the repository root has to score the same way."""
     deep = tmp_path / "docs" / "policies"
     deep.mkdir(parents=True)
-    (tmp_path / ".killverbosity.json").write_text('{"profile": "es"}')
+    (tmp_path / ".killverbosity.json").write_text('{"profile": "es"}', encoding="utf-8")
     doc = deep / "p.md"
-    doc.write_text("# Politica\n\nEl equipo revisa cada despliegue.\n")
+    doc.write_text("# Politica\n\nEl equipo revisa cada despliegue.\n", encoding="utf-8")
 
     r = run_tool("plan", doc, cwd=str(tmp_path.parent))
 
@@ -130,9 +130,9 @@ def test_the_project_file_is_found_from_the_document_not_the_shell(tmp_path):
 def test_an_unknown_key_in_the_project_file_is_named(tmp_path):
     """A key this build does not know is a typo, and the alternative to saying
     so is a setting that silently does nothing."""
-    (tmp_path / ".killverbosity.json").write_text('{"profil": "es"}')
+    (tmp_path / ".killverbosity.json").write_text('{"profil": "es"}', encoding="utf-8")
     doc = tmp_path / "p.md"
-    doc.write_text("# T\n\nThe team reviews each deployment.\n")
+    doc.write_text("# T\n\nThe team reviews each deployment.\n", encoding="utf-8")
 
     r = run_tool("plan", doc)
 
@@ -145,7 +145,7 @@ DOC = "# T\n\nSome prose here that is long enough to be a document, with words.\
 
 def test_an_input_named_like_an_output_is_warned_about(tmp_path):
     """`doc.kv.md` is matched by the `*.md` that found `doc.md`."""
-    (tmp_path / "doc.kv.md").write_text(DOC)
+    (tmp_path / "doc.kv.md").write_text(DOC, encoding="utf-8")
 
     r = run_tool("run", tmp_path / "doc.kv.md", "--dry-run")
 
@@ -157,7 +157,7 @@ def test_an_ordinary_input_is_not_warned_about(tmp_path):
     """The control. A warning on every correct run is one nobody reads, and it
     would fire on the common case: the tool is normally pointed at `doc.md`.
     """
-    (tmp_path / "doc.md").write_text(DOC)
+    (tmp_path / "doc.md").write_text(DOC, encoding="utf-8")
 
     r = run_tool("run", tmp_path / "doc.md", "--dry-run")
 

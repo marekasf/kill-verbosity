@@ -11,8 +11,8 @@ import io
 
 def _verify(kv, tmp_path, orig, new):
     a, b = tmp_path / "o.md", tmp_path / "n.md"
-    a.write_text(orig)
-    b.write_text(new)
+    a.write_text(orig, encoding="utf-8")
+    b.write_text(new, encoding="utf-8")
     buf = io.StringIO()
     with contextlib.redirect_stdout(buf):
         rc = kv.cmd_verify(argparse.Namespace(

@@ -13,8 +13,8 @@ EDIT = ("# Notes\n\nThe registry holds 121 plugins across 8 kinds.\n")
 def _pair(tmp_path, orig_text, edit_text, orig_newer):
     orig = tmp_path / "note.md"
     edited = tmp_path / "note.kv.md"
-    orig.write_text(orig_text)
-    edited.write_text(edit_text)
+    orig.write_text(orig_text, encoding="utf-8")
+    edited.write_text(edit_text, encoding="utf-8")
     now = time.time()
     if orig_newer:
         os.utime(edited, (now - 172800, now - 172800))
@@ -96,7 +96,7 @@ def test_a_run_and_its_own_output_are_never_called_stale(kv, monkeypatch,
     `verify` must be silent -- a warning there fires on every single run."""
     from conftest import run_canned
     doc = tmp_path / "note.md"
-    doc.write_text(DOC)
+    doc.write_text(DOC, encoding="utf-8")
     run_canned(kv, monkeypatch, doc, tmp_path / "out.md", lambda *_: [])
     said = capsys.readouterr()
     assert "is NEWER than" not in said.err, said.err

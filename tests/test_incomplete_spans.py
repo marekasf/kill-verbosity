@@ -30,7 +30,7 @@ def test_the_record_a_REAL_RUN_writes_carries_the_unit(kv, tmp_path,
         f"later inspection by whichever operator happens to be {t}."
         for i, t in enumerate(tails, 1)]
     src = tmp_path / "doc.md"
-    src.write_text("\n".join(lines) + "\n")
+    src.write_text("\n".join(lines) + "\n", encoding="utf-8")
     out = tmp_path / "out.md"
 
     real_prompt = kv.job_prompt
@@ -59,7 +59,7 @@ def test_the_record_a_REAL_RUN_writes_carries_the_unit(kv, tmp_path,
     capsys.readouterr()
     assert rc == 1, f"a run with unsent spans exited {rc}"
 
-    spans = json.loads(kv.run_record_path(out).read_text())["incomplete"]
+    spans = json.loads(kv.run_record_path(out).read_text(encoding="utf-8"))["incomplete"]
     assert len(spans) >= 3, f"nothing went unsent: {spans}"
     structure = [s for s in spans if s.startswith("structure ")]
     assert len(structure) >= 2, f"the colliding jobs did not run: {spans}"
@@ -83,10 +83,10 @@ def test_the_record_a_REAL_RUN_writes_carries_the_unit(kv, tmp_path,
 def test_accept_prints_a_list_that_reconciles_with_its_count(
         kv, tmp_path, capsys, spans, want_lines, want_mult):
     src = tmp_path / "doc.md"
-    src.write_text("# T\n\nA line of prose here.\n")
+    src.write_text("# T\n\nA line of prose here.\n", encoding="utf-8")
     out = tmp_path / "out.md"
-    out.write_text("# T\n\nA line of prose here.\n")
-    kv.write_run_record(out, source=kv.source_fingerprint(src.read_text()),
+    out.write_text("# T\n\nA line of prose here.\n", encoding="utf-8")
+    kv.write_run_record(out, source=kv.source_fingerprint(src.read_text(encoding="utf-8")),
                         incomplete=list(spans))
     rc = kv.cmd_accept(_Args(file=str(src), edited=str(out)))
     err = capsys.readouterr().err
@@ -104,10 +104,10 @@ def test_accept_prints_a_list_that_reconciles_with_its_count(
 def test_a_complete_run_is_still_accepted(kv, tmp_path):
     """The control on the whole file: `incomplete: []` must not refuse."""
     src = tmp_path / "doc.md"
-    src.write_text("# T\n\nA line of prose here.\n")
+    src.write_text("# T\n\nA line of prose here.\n", encoding="utf-8")
     out = tmp_path / "out.md"
-    out.write_text("# T\n\nA line of prose here.\n")
-    kv.write_run_record(out, source=kv.source_fingerprint(src.read_text()),
+    out.write_text("# T\n\nA line of prose here.\n", encoding="utf-8")
+    kv.write_run_record(out, source=kv.source_fingerprint(src.read_text(encoding="utf-8")),
                         incomplete=[])
     assert kv.cmd_accept(_Args(file=str(src), edited=str(out))) == 0
-    assert out.read_text() == src.read_text()
+    assert out.read_text(encoding="utf-8") == src.read_text(encoding="utf-8")

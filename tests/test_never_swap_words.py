@@ -29,8 +29,8 @@ ORIGINAL = ("# Report\n\nThe working rules section is load-bearing: it is "
 def _verify(kv, tmp_path, edited, original=ORIGINAL):
     o = tmp_path / "o.md"
     n = tmp_path / "n.md"
-    o.write_text(original)
-    n.write_text(edited)
+    o.write_text(original, encoding="utf-8")
+    n.write_text(edited, encoding="utf-8")
     buf = io.StringIO()
     with contextlib.redirect_stdout(buf):
         rc = kv.cmd_verify(argparse.Namespace(

@@ -42,8 +42,8 @@ been that way for a while.
 def _pair(tmp_path, orig, new, name="t"):
     o = tmp_path / f"{name}.orig.md"
     n = tmp_path / f"{name}.new.md"
-    o.write_text(orig)
-    n.write_text(new)
+    o.write_text(orig, encoding="utf-8")
+    n.write_text(new, encoding="utf-8")
     return o, n
 
 

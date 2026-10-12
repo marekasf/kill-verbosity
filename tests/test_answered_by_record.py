@@ -65,7 +65,7 @@ def test_call_agent_names_the_rung_and_whether_it_looked(kv, monkeypatch):
 
 def _run(kv, monkeypatch, tmp_path, capsys, launcher):
     src = tmp_path / "doc.md"
-    src.write_text(DOC + "\n")
+    src.write_text(DOC + "\n", encoding="utf-8")
     out = tmp_path / "out.md"
     monkeypatch.setattr(kv, "call_agent", launcher)
     monkeypatch.setattr(kv, "JOBS", 1)
@@ -76,7 +76,7 @@ def _run(kv, monkeypatch, tmp_path, capsys, launcher):
     except SystemExit:
         pass
     capsys.readouterr()
-    return json.loads(kv.run_record_path(out).read_text())
+    return json.loads(kv.run_record_path(out).read_text(encoding="utf-8"))
 
 
 def test_the_record_carries_who_answered_each_job(kv, monkeypatch, tmp_path,
@@ -135,7 +135,7 @@ def test_a_retried_summary_does_not_inherit_the_first_answers_reader(
     for i in range(12):
         doc += [f"## Section {i + 1}", "", body, ""]
     src, out = tmp_path / "long.md", tmp_path / "o.md"
-    src.write_text("\n".join(doc))
+    src.write_text("\n".join(doc), encoding="utf-8")
     who, real_prompt, seen = {}, kv.job_prompt, []
 
     def spy(job, *a, **k):
@@ -167,7 +167,7 @@ def test_a_retried_summary_does_not_inherit_the_first_answers_reader(
     except SystemExit:
         pass
     capsys.readouterr()
-    rec = json.loads(kv.run_record_path(out).read_text())
+    rec = json.loads(kv.run_record_path(out).read_text(encoding="utf-8"))
 
     assert len(seen) == 2, f"the summary was not retried: {len(seen)} asks"
     summ = [j for j in rec["job_spans"] if j["specialist"] == "summary"]
@@ -201,8 +201,8 @@ def test_answering_backends_reads_old_and_new_records(kv):
 
 def _crosscheck(kv, monkeypatch, tmp_path, backend, spans, stderr=""):
     orig, out = tmp_path / "d.md", tmp_path / "d.kv.md"
-    orig.write_text("# a\n\ntext\n")
-    out.write_text("# a\n\ntext\n")
+    orig.write_text("# a\n\ntext\n", encoding="utf-8")
+    out.write_text("# a\n\ntext\n", encoding="utf-8")
     fields = {"agent": "codex", "chat": False, "inserted": False,
               "summary_added": False, "swaps": [], "exempt": [],
               "incomplete": [],

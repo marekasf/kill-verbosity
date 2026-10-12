@@ -83,7 +83,7 @@ def doc(tmp_path):
 
     def _write(text, name="doc.md"):
         p = tmp_path / name
-        p.write_text(text if text.endswith("\n") else text + "\n")
+        p.write_text(text if text.endswith("\n") else text + "\n", encoding="utf-8")
         return p
 
     return _write
@@ -96,7 +96,7 @@ def run_tool(*args, binary=None, cwd=None, force=False):
         capture_output=True,
         text=True,
         cwd=cwd,
-        env={**os.environ, "KV_FORCE": "1"} if force else None,
+        env={**os.environ, "KV_FORCE": "1"} if force else None, encoding="utf-8",
     )
 
 

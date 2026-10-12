@@ -104,12 +104,12 @@ FORWARD_REV = (
 
 def _mutant(tmp_path):
     """`_legacy.py` with `as_rule` put back to recall-against-the-original."""
-    src = (REPO / "killverbosity" / "_legacy.py").read_text()
+    src = (REPO / "killverbosity" / "_legacy.py").read_text(encoding="utf-8")
     assert src.count(OLD_REV) == 1, (
         "the mutation target is not in the source exactly once, so this "
         "mutant would test nothing")
     path = tmp_path / "mutant_legacy.py"
-    path.write_text(src.replace(OLD_REV, FORWARD_REV))
+    path.write_text(src.replace(OLD_REV, FORWARD_REV), encoding="utf-8")
 
     name = "kv_mutant_g593_%s" % tmp_path.name
     spec = importlib.util.spec_from_file_location(name, path)

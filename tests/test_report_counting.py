@@ -18,8 +18,8 @@ LONG = "\n".join(
 def test_growth_is_not_printed_as_a_cut(kv, monkeypatch, tmp_path, capsys):
     """A run that grew the file printed "936 → 950 words (-1.5% cut)"."""
     src = tmp_path / "doc.md"
-    src.write_text(LONG + "\n")
-    body = src.read_text().splitlines()[2]
+    src.write_text(LONG + "\n", encoding="utf-8")
+    body = src.read_text(encoding="utf-8").splitlines()[2]
 
     def reply(who, lo, hi):
         if who != "prose" or not lo <= 3 <= (hi or 10 ** 9):
@@ -42,8 +42,8 @@ def test_the_three_edit_buckets_add_up(kv, monkeypatch, tmp_path, capsys):
     owner" adds to 54. One line contested by two specialists was counted once
     as refused and once as owner-lost."""
     src = tmp_path / "doc.md"
-    src.write_text(LONG + "\n")
-    body = src.read_text().splitlines()[2]
+    src.write_text(LONG + "\n", encoding="utf-8")
+    body = src.read_text(encoding="utf-8").splitlines()[2]
 
     def reply(who, lo, hi):
         if not lo <= 3 <= (hi or 10 ** 9):
@@ -90,7 +90,7 @@ def test_a_block_rolled_back_is_counted_once(kv, monkeypatch, tmp_path,
                                              capsys):
     """"47 of 68 edits applied, 6 refused, 16 owner" adds to 69."""
     src = tmp_path / "doc.md"
-    src.write_text(WRAPPED)
+    src.write_text(WRAPPED, encoding="utf-8")
     lines = WRAPPED.splitlines()
 
     def reply(who, lo, hi):
@@ -116,7 +116,7 @@ def test_a_summary_refused_whole_is_counted_in_no_bucket(kv, monkeypatch,
                                                          tmp_path, capsys):
     """"31 of 44 applied, 5 refused, 7 owner" adds to 43."""
     src = tmp_path / "doc.md"
-    src.write_text(NEEDS_SUMMARY)
+    src.write_text(NEEDS_SUMMARY, encoding="utf-8")
 
     def reply(who, lo, hi):
         if who != "summary":
@@ -141,9 +141,9 @@ def test_every_list_can_be_printed_in_full(tmp_path):
     o = tmp_path / "o.md"
     n = tmp_path / "n.md"
     o.write_text("# Budgets\n\n" + " ".join(
-        f"Region {i} holds {i * 7} nodes." for i in range(1, 13)) + "\n")
+        f"Region {i} holds {i * 7} nodes." for i in range(1, 13)) + "\n", encoding="utf-8")
     n.write_text("# Budgets\n\n" + " ".join(
-        f"Region {i} holds nodes." for i in range(1, 13)) + "\n")
+        f"Region {i} holds nodes." for i in range(1, 13)) + "\n", encoding="utf-8")
 
     short = run_tool("verify", o, n)
     full = run_tool("verify", o, n, "--full")
@@ -163,8 +163,8 @@ def test_full_widens_the_shape_quotes_as_well_as_the_list(tmp_path):
     o = tmp_path / "o.md"
     n = tmp_path / "n.md"
     o.write_text("# T\n\nThe clean index URL hides the token from the log. "
-                 "The clean report shows the retry budget in seconds.\n")
-    n.write_text(o.read_text())
+                 "The clean report shows the retry budget in seconds.\n", encoding="utf-8")
+    n.write_text(o.read_text(encoding="utf-8"), encoding="utf-8")
 
     def row(res):
         return next(x for x in res.stdout.splitlines()
@@ -190,8 +190,8 @@ def test_a_missing_summary_is_not_called_an_over_cap_one(tmp_path):
            f"The retry budget is {i * 3} seconds and the operator is paged "
            f"after it. " for i in range(1, 41)]
     )
-    o.write_text(big + "\n")
-    n.write_text(big.replace("job 40", "job 40,") + "\n")
+    o.write_text(big + "\n", encoding="utf-8")
+    n.write_text(big.replace("job 40", "job 40,") + "\n", encoding="utf-8")
 
     r = run_tool("verify", o, n)
 
@@ -207,7 +207,7 @@ def test_the_headline_names_every_count_it_leaves_out(tmp_path):
         "# Notes\n\n"
         "The deploy — which was late — broke — again — and it — really — did.\n\n"
         "One. Two. Three. Four. Five. Six. Seven. Eight. Nine. Ten. Eleven.\n\n"
-        "It is worth noting that the deployment finished in the end.\n"
+        "It is worth noting that the deployment finished in the end.\n", encoding="utf-8"
     )
     out = run_tool("plan", p).stdout
     head = next(x for x in out.splitlines() if "fault-shape" in x)
@@ -223,7 +223,7 @@ def test_plan_says_how_much_of_the_file_goes_to_nobody(tmp_path):
     p.write_text("# Notes\n\n" + "".join(
         f"## Section {i}\n\nThe worker records run {i} in the log store.\n\n"
         for i in range(1, 5))
-        + "## Last\n\nIt is worth noting that the deployment finished.\n")
+        + "## Last\n\nIt is worth noting that the deployment finished.\n", encoding="utf-8")
 
     out = run_tool("plan", p).stdout
 
@@ -242,7 +242,7 @@ def test_the_coverage_line_does_not_read_as_a_smaller_headline(tmp_path):
         "# Notes\n\n| col | note |\n|---|---|\n| a | one two three four |\n\n"
         + "".join(f"## Section {i}\n\nThe worker records run {i} in the log "
                   f"store.\n\n" for i in range(1, 5))
-        + "## Last\n\nIt is worth noting that the deployment finished.\n")
+        + "## Last\n\nIt is worth noting that the deployment finished.\n", encoding="utf-8")
 
     out = run_tool("plan", p).stdout
     line = out.split("found nothing")[1].splitlines()[1]
@@ -269,7 +269,7 @@ def test_coverage_total_matches_headline_prose_population(tmp_path):
         "# Notes\n\n"
         "| col | note |\n|---|---|\n| a | one two three four |\n\n"
         "## Section 1\n\nThe worker logs each run in the store.\n\n"
-        "## Section 2\n\nThe worker closes the file at the end.\n")
+        "## Section 2\n\nThe worker closes the file at the end.\n", encoding="utf-8")
 
     out = run_tool("plan", p).stdout
     head = next(x for x in out.splitlines() if "fault-shape" in x)
@@ -284,7 +284,7 @@ def test_coverage_total_matches_headline_prose_population(tmp_path):
     assert coverage_total == HAND_COUNTED_PROSE_WORDS, coverage
 
 
-G412_G413_FIXTURE = (
+SECTIONS_FIXTURE = (
     "# Notes\n\n"
     "## Section 1\n\n"
     "Phase 1 ships next quarter.\n\n"
@@ -311,7 +311,7 @@ def test_expected_yield_names_its_population_not_the_headlines_shapes(
     348 lines; it fired on 32.
     """
     p = tmp_path / "doc.md"
-    p.write_text(G412_G413_FIXTURE)
+    p.write_text(SECTIONS_FIXTURE, encoding="utf-8")
 
     out = run_tool("plan", p).stdout
     head = next(x for x in out.splitlines() if "fault-shape" in x)
@@ -342,7 +342,7 @@ def test_rate_names_its_denominator_and_prints_the_total_words_rate(
     this rate at all.
     """
     p = tmp_path / "doc.md"
-    p.write_text(G412_G413_FIXTURE)
+    p.write_text(SECTIONS_FIXTURE, encoding="utf-8")
 
     out = run_tool("plan", p).stdout
     head = next(x for x in out.splitlines() if "fault-shape" in x)
@@ -357,7 +357,7 @@ def test_a_file_that_skipped_no_words_says_nothing_about_coverage(tmp_path):
     """The title is its own chunk and holds no words, so a clean short file
     printed "0 of 8 words (0%)" — a warning about nothing."""
     p = tmp_path / "doc.md"
-    p.write_text("# Notes\n\nIt is worth noting that the deploy finished.\n")
+    p.write_text("# Notes\n\nIt is worth noting that the deploy finished.\n", encoding="utf-8")
 
     assert "no specialist" not in run_tool("plan", p).stdout
 
@@ -366,8 +366,8 @@ def test_over_target_says_whether_the_run_finished(kv, monkeypatch, tmp_path,
                                                    capsys):
     """The ratio alone does not."""
     src = tmp_path / "doc.md"
-    src.write_text(LONG + "\n")
-    lines = src.read_text().splitlines()
+    src.write_text(LONG + "\n", encoding="utf-8")
+    lines = src.read_text(encoding="utf-8").splitlines()
 
     verbs = "retries requeues restarts resumes replays reruns revives " \
             "reissues repeats reschedules reloads reconnects refires".split()
@@ -402,8 +402,8 @@ def test_the_refusal_list_says_it_is_counting_groups(kv, monkeypatch, tmp_path,
                                                      capsys):
     """The headline counts refused edits, the list counts rows after the fold."""
     src = tmp_path / "doc.md"
-    src.write_text(LONG + "\n")
-    lines = src.read_text().splitlines()
+    src.write_text(LONG + "\n", encoding="utf-8")
+    lines = src.read_text(encoding="utf-8").splitlines()
 
     def reply(who, lo, hi):
         if who != "prose":
@@ -430,8 +430,8 @@ def test_one_em_dash_paragraph_is_not_plural(tmp_path):
     has the singular right."""
     o = tmp_path / "o.md"
     n = tmp_path / "n.md"
-    o.write_text("# Notes\n\nThe deploy finished late.\n")
-    n.write_text("# Notes\n\nThe deploy — the second one — finished late.\n")
+    o.write_text("# Notes\n\nThe deploy finished late.\n", encoding="utf-8")
+    n.write_text("# Notes\n\nThe deploy — the second one — finished late.\n", encoding="utf-8")
 
     out = run_tool("verify", o, n).stdout
 
@@ -484,8 +484,8 @@ def test_a_heading_renamed_and_moved_keeps_its_rules(tmp_path):
     """
     o = tmp_path / "o.md"
     n = tmp_path / "n.md"
-    o.write_text(_doc(("Alpha", "alpha"), ("Beta", "beta")))
-    n.write_text(_doc(("Beta", "beta"), ("Retry limits", "alpha")))
+    o.write_text(_doc(("Alpha", "alpha"), ("Beta", "beta")), encoding="utf-8")
+    n.write_text(_doc(("Beta", "beta"), ("Retry limits", "alpha")), encoding="utf-8")
 
     out = run_tool("verify", o, n).stdout
 
@@ -501,7 +501,7 @@ def test_one_specialist_saying_it_twice_is_not_two_specialists(
     note twice. The line dropped the first member and named what was left, so
     it printed "1 more said this, from structure"."""
     src = tmp_path / "doc.md"
-    src.write_text(LONG + "\n")
+    src.write_text(LONG + "\n", encoding="utf-8")
     note = "the opening needs a person to decide what it is for"
 
     seen = run_canned(kv, monkeypatch, src, tmp_path / "out.md",

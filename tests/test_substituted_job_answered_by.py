@@ -36,7 +36,7 @@ def test_a_substituted_job_names_who_really_answered_in_job_spans(
     itself, per job.
     """
     src, out = tmp_path / "doc.md", tmp_path / "out.md"
-    src.write_text(DOC)
+    src.write_text(DOC, encoding="utf-8")
 
     def launcher(prompt, requested_agent, timeout, say=None, avoid=(),
                 answered=None):
@@ -58,7 +58,7 @@ def test_a_substituted_job_names_who_really_answered_in_job_spans(
         pass
     capsys.readouterr()
 
-    rec = json.loads(kv.run_record_path(out).read_text())
+    rec = json.loads(kv.run_record_path(out).read_text(encoding="utf-8"))
     assert rec["agent"] == "codex", "the requested agent must be unchanged"
     spans = rec["job_spans"]
     assert spans, "the run dispatched no jobs -- nothing to prove"

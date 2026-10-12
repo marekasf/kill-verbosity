@@ -18,7 +18,7 @@ DOC = "\n".join(
 def _run(kv, monkeypatch, tmp_path, first):
     """Answer every job with `first`, then valid JSON. Returns the prompts."""
     src = tmp_path / "doc.md"
-    src.write_text(DOC + "\n")
+    src.write_text(DOC + "\n", encoding="utf-8")
     prompts, asked = [], set()
 
     def agent(prompt, *_):
@@ -59,9 +59,9 @@ def test_a_retried_job_does_not_kill_the_run(kv, monkeypatch, tmp_path,
                                              capsys):
     """The journal was one handle opened around the thread pool."""
     src = tmp_path / "doc.md"
-    src.write_text(DOC + "\n")
+    src.write_text(DOC + "\n", encoding="utf-8")
     out = tmp_path / "out.md"
-    body = src.read_text().splitlines()[2]
+    body = src.read_text(encoding="utf-8").splitlines()[2]
     calls = []
 
     def agent(prompt, *_):
@@ -86,7 +86,7 @@ def test_a_retried_job_does_not_kill_the_run(kv, monkeypatch, tmp_path,
     assert len(calls) > 1, "nothing was retried"
     assert "I/O operation on closed file" not in printed.out + printed.err
     assert out.exists(), "the run wrote no output"
-    assert "pages after 3 seconds" in out.read_text(), out.read_text()
+    assert "pages after 3 seconds" in out.read_text(encoding="utf-8"), out.read_text(encoding="utf-8")
 
 
 def test_a_backend_error_adds_nothing_to_the_prompt(kv, monkeypatch, tmp_path,
@@ -95,7 +95,7 @@ def test_a_backend_error_adds_nothing_to_the_prompt(kv, monkeypatch, tmp_path,
     seen = []
 
     src = tmp_path / "doc.md"
-    src.write_text(DOC + "\n")
+    src.write_text(DOC + "\n", encoding="utf-8")
 
     def agent(prompt, *_):
         seen.append(prompt)

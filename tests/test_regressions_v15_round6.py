@@ -70,7 +70,7 @@ def test_the_merge_does_not_depend_on_which_answer_arrives_first(
 
     def run(reverse):
         src = tmp_path / f"doc{int(reverse)}.md"
-        src.write_text(doc)
+        src.write_text(doc, encoding="utf-8")
         out = tmp_path / f"out{int(reverse)}.md"
         turn, lock = {"n": 0}, threading.Lock()
 
@@ -103,7 +103,7 @@ def test_the_merge_does_not_depend_on_which_answer_arrives_first(
             kv.main()
         except SystemExit:
             pass
-        return out.read_text() if out.exists() else None
+        return out.read_text(encoding="utf-8") if out.exists() else None
 
     first, second = run(False), run(True)
 
@@ -128,7 +128,7 @@ def test_the_document_scope_jobs_are_sent_before_the_section_jobs(
         f"point in time, a retry count that nobody has actually gone and "
         f"checked." for i in range(6)) + "\n"
     src = tmp_path / "doc.md"
-    src.write_text(doc)
+    src.write_text(doc, encoding="utf-8")
 
     order, lock = [], threading.Lock()
 
@@ -163,8 +163,8 @@ def _verify(kv, tmp_path, orig, new):
     import sys
     import contextlib
     a, b = tmp_path / "a.md", tmp_path / "b.md"
-    a.write_text(orig)
-    b.write_text(new)
+    a.write_text(orig, encoding="utf-8")
+    b.write_text(new, encoding="utf-8")
     buf = io.StringIO()
     with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(buf):
         old = sys.argv

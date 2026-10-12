@@ -19,8 +19,8 @@ SESSION_LIMIT_STDERR = (
 
 def _pair(tmp_path, text="# Doc\n\nSome prose here.\n"):
     orig, out = tmp_path / "d.md", tmp_path / "d.kv.md"
-    orig.write_text(text)
-    out.write_text(text)
+    orig.write_text(text, encoding="utf-8")
+    out.write_text(text, encoding="utf-8")
     return orig, out
 
 
@@ -30,7 +30,7 @@ def _ns(orig, out, backend):
 
 
 def _record(out):
-    return json.loads(runrecord.crosscheck_record_path(out).read_text())
+    return json.loads(runrecord.crosscheck_record_path(out).read_text(encoding="utf-8"))
 
 
 def _write_agy_run(kv, out):

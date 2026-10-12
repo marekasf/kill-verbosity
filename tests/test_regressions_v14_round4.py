@@ -74,9 +74,9 @@ def test_a_url_line_is_not_rewrapped():
 
 def test_a_journal_turns_the_overwrite_refusal_into_a_resume(tmp_path):
     src = tmp_path / "in.md"
-    src.write_text("one\n")
+    src.write_text("one\n", encoding="utf-8")
     out = tmp_path / "in.kv.md"
-    out.write_text("two\n")
+    out.write_text("two\n", encoding="utf-8")
     later = src.stat().st_mtime + 10
     os.utime(out, (later, later))
 
@@ -96,17 +96,17 @@ def test_the_overwrite_refusal_names_both_mtimes_and_the_gap():
 def test_an_output_older_than_its_input_is_not_in_the_way(tmp_path):
     src = tmp_path / "in.md"
     out = tmp_path / "in.kv.md"
-    out.write_text("two\n")
-    src.write_text("one\n")
+    out.write_text("two\n", encoding="utf-8")
+    src.write_text("one\n", encoding="utf-8")
 
     assert rerun.verdict(out, src, "one\n", {}) == rerun.PROCEED
 
 
 def test_an_output_identical_to_the_input_is_not_in_the_way(tmp_path):
     src = tmp_path / "in.md"
-    src.write_text("one\n")
+    src.write_text("one\n", encoding="utf-8")
     out = tmp_path / "in.kv.md"
-    out.write_text("one\n")
+    out.write_text("one\n", encoding="utf-8")
 
     assert rerun.verdict(out, src, "one\n", {}) == rerun.PROCEED
 
@@ -199,7 +199,7 @@ def test_a_heading_about_the_marker_is_not_itself_frozen():
 def test_no_specialist_is_sent_into_a_protected_section(tmp_path, kv,
                                                         monkeypatch):
     doc = tmp_path / "p.md"
-    doc.write_text(PROTECTED_DOC)
+    doc.write_text(PROTECTED_DOC, encoding="utf-8")
     out = tmp_path / "p.kv.md"
     asked = []
 

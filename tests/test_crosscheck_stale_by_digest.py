@@ -30,8 +30,8 @@ def _crosscheck(kv, monkeypatch, capsys, edited, orig):
 
 def _pair(kv, tmp_path, orig_text, recorded_text, orig_newer):
     orig, edited = tmp_path / "note.md", tmp_path / "note.kv.md"
-    orig.write_text(orig_text)
-    edited.write_text(EDIT)
+    orig.write_text(orig_text, encoding="utf-8")
+    edited.write_text(EDIT, encoding="utf-8")
     now = time.time()
     old, new = (edited, orig) if orig_newer else (orig, edited)
     os.utime(old, (now - 172800, now - 172800))

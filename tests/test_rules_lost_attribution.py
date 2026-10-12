@@ -24,8 +24,8 @@ The worker retries three times.
 
 def _pair(tmp_path, orig=ORIG, edited=EDITED, name="t"):
     o, n = tmp_path / f"{name}.md", tmp_path / f"{name}.kv.md"
-    o.write_text(orig)
-    n.write_text(edited)
+    o.write_text(orig, encoding="utf-8")
+    n.write_text(edited, encoding="utf-8")
     return o, n
 
 

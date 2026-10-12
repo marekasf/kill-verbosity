@@ -151,8 +151,8 @@ Rooms must be booked at least one day in advance.
 
 def _verify(tmp_path, orig, edit):
     o, n = tmp_path / "orig.md", tmp_path / "new.md"
-    o.write_text(orig)
-    n.write_text(edit)
+    o.write_text(orig, encoding="utf-8")
+    n.write_text(edit, encoding="utf-8")
     return run_tool("verify", o, n)
 
 

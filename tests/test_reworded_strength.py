@@ -93,8 +93,8 @@ def test_the_block_separates_a_rule_from_advice_and_prints_the_rule_first(
         kv, tmp_path):
     """One input carrying BOTH shapes, with both outcomes asserted."""
     o, e = tmp_path / "o.md", tmp_path / "e.md"
-    o.write_text(RULE_AND_ADVICE_ORIGINAL)
-    e.write_text(RULE_AND_ADVICE_EDITED)
+    o.write_text(RULE_AND_ADVICE_ORIGINAL, encoding="utf-8")
+    e.write_text(RULE_AND_ADVICE_EDITED, encoding="utf-8")
     rc, out = _verify(kv, o, e)
 
     assert rc == 3, f"rc={rc}, and a reworded rule is a review, not a FAIL:\n{out}"
@@ -121,10 +121,10 @@ def test_an_advice_only_block_does_not_claim_a_rule_was_stated(kv, tmp_path):
     o, e = tmp_path / "o.md", tmp_path / "e.md"
     o.write_text(RULE_AND_ADVICE_ORIGINAL.replace(
         "You must never commit the signing key to version control.",
-        "You should probably rotate the signing key each quarter."))
+        "You should probably rotate the signing key each quarter."), encoding="utf-8")
     e.write_text(RULE_AND_ADVICE_EDITED.replace(
         "The signing key is not committed to version control.",
-        "The signing key is rotated each quarter."))
+        "The signing key is rotated each quarter."), encoding="utf-8")
     rc, out = _verify(kv, o, e)
     assert rc == 3, f"rc={rc}, advice-only is a review, not a FAIL:\n{out}"
     assert "no block recorded itself" not in out, out
@@ -151,12 +151,12 @@ def test_the_cap_is_one_budget_across_both_kinds(kv, tmp_path):
               for w in ("kilo", "lima", "mike", "november")]
     o = tmp_path / "o.md"
     e = tmp_path / "e.md"
-    o.write_text("# T\n\n" + "\n\n".join(rules + advice) + "\n")
+    o.write_text("# T\n\n" + "\n\n".join(rules + advice) + "\n", encoding="utf-8")
     e.write_text("# T\n\n" + "\n\n".join(
         [r.replace("You must never delete", "The deletion of").replace(
             " before the audit closes", " is held until the audit closes")
          for r in rules]
-        + [a.replace("It should be noted that the", "The") for a in advice]) + "\n")
+        + [a.replace("It should be noted that the", "The") for a in advice]) + "\n", encoding="utf-8")
     rc, out = _verify(kv, o, e)
 
     rows = _reworded(out)

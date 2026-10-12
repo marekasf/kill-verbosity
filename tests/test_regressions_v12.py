@@ -25,8 +25,8 @@ The worker retries the job and pages the operator after 30 seconds.
 
 def _pair(tmp_path):
     src, out = tmp_path / "a.md", tmp_path / "a.kv.md"
-    src.write_text(ORIG)
-    out.write_text(EDITED)
+    src.write_text(ORIG, encoding="utf-8")
+    out.write_text(EDITED, encoding="utf-8")
     return src, out
 
 
@@ -38,7 +38,7 @@ def test_accept_refuses_when_the_run_record_is_missing(tmp_path):
 
     assert r.returncode == 1, r.stdout + r.stderr
     assert "a.kv.md.kvrun" in r.stderr, r.stderr
-    assert src.read_text() == ORIG, "the target was replaced anyway"
+    assert src.read_text(encoding="utf-8") == ORIG, "the target was replaced anyway"
 
 
 def test_accept_refuses_a_record_from_an_earlier_run(tmp_path):
@@ -51,7 +51,7 @@ def test_accept_refuses_a_record_from_an_earlier_run(tmp_path):
     r = run_tool("accept", src, out)
 
     assert r.returncode == 1, r.stdout + r.stderr
-    assert src.read_text() == ORIG, "the target was replaced anyway"
+    assert src.read_text(encoding="utf-8") == ORIG, "the target was replaced anyway"
 
 
 def test_force_still_accepts_without_a_record(tmp_path):
@@ -63,7 +63,7 @@ def test_force_still_accepts_without_a_record(tmp_path):
     r = run_tool("accept", src, out, force=True)
 
     assert r.returncode == 4, r.stdout + r.stderr
-    assert src.read_text() == EDITED
+    assert src.read_text(encoding="utf-8") == EDITED
     assert "KV_FORCE overruled" in r.stdout, r.stdout
     assert "no run record" in r.stdout, r.stdout
 
@@ -78,7 +78,7 @@ def test_a_clean_record_still_accepts(tmp_path):
     r = run_tool("accept", src, out)
 
     assert r.returncode == 0, r.stdout + r.stderr
-    assert src.read_text() == EDITED
+    assert src.read_text(encoding="utf-8") == EDITED
 
 LONG = "\n".join(
     ["# Platform notes", ""]
@@ -91,23 +91,23 @@ LONG = "\n".join(
 def test_a_baseline_is_not_given_a_second_baseline(kv, monkeypatch, tmp_path):
     """Running on `design-v2.orig.md` wrote `design-v2.orig.orig.md`."""
     src = tmp_path / "design-v2.orig.md"
-    src.write_text(LONG + "\n")
+    src.write_text(LONG + "\n", encoding="utf-8")
 
     run_canned(kv, monkeypatch, src, tmp_path / "out.md", lambda *_: [])
 
     assert not (tmp_path / "design-v2.orig.orig.md").exists(), \
         sorted(p.name for p in tmp_path.iterdir())
-    assert src.read_text() == LONG + "\n", "the input was used as scratch"
+    assert src.read_text(encoding="utf-8") == LONG + "\n", "the input was used as scratch"
 
 
 def test_an_ordinary_file_still_gets_a_baseline(kv, monkeypatch, tmp_path):
     """The guard above must not cost every other file its untouched copy."""
     src = tmp_path / "design-v2.md"
-    src.write_text(LONG + "\n")
+    src.write_text(LONG + "\n", encoding="utf-8")
 
     run_canned(kv, monkeypatch, src, tmp_path / "out.md", lambda *_: [])
 
-    assert (tmp_path / "out.orig.md").read_text() == LONG + "\n"
+    assert (tmp_path / "out.orig.md").read_text(encoding="utf-8") == LONG + "\n"
 
 
 WRAPPED = """# Notes
@@ -176,7 +176,7 @@ def test_a_rewritten_paragraph_leaves_no_fragment_behind(kv, monkeypatch,
                                                          tmp_path):
     """The whole cluster, end to end through the real pipeline."""
     src, out = tmp_path / "w.md", tmp_path / "w.kv.md"
-    src.write_text(WRAPPED)
+    src.write_text(WRAPPED, encoding="utf-8")
     new = "The worker retries and pages the operator after thirty seconds."
 
     folded, _spans = _fold(kv, WRAPPED)
@@ -189,7 +189,7 @@ def test_a_rewritten_paragraph_leaves_no_fragment_behind(kv, monkeypatch,
         return [{"line": ln, "old": old, "new": new}]
 
     run_canned(kv, monkeypatch, src, out, reply)
-    got = out.read_text()
+    got = out.read_text(encoding="utf-8")
 
     assert new.split(" after ")[0] in got, got
     assert "seconds, and the retry budget" not in got, got
@@ -200,10 +200,10 @@ def test_the_output_keeps_the_original_margin(kv, monkeypatch, tmp_path):
     """Folding is for the run only. A wrapped file must come back wrapped, or
     every accepted run puts one 300-character line into the diff."""
     src, out = tmp_path / "w.md", tmp_path / "w.kv.md"
-    src.write_text(WRAPPED)
+    src.write_text(WRAPPED, encoding="utf-8")
 
     run_canned(kv, monkeypatch, src, out, lambda *_: [])
-    longest = max(len(l) for l in out.read_text().split("\n"))
+    longest = max(len(l) for l in out.read_text(encoding="utf-8").split("\n"))
 
     assert longest <= 100, f"longest line {longest}, the file wraps near 62"
 
@@ -219,7 +219,7 @@ def test_the_gate_and_verdict_agree_about_the_opening(kv, monkeypatch,
                                                       tmp_path):
     """Ten of the eighteen round-2 findings, and two guards refusing each other."""
     src, out = tmp_path / "d.md", tmp_path / "d.kv.md"
-    src.write_text(NOSUM)
+    src.write_text(NOSUM, encoding="utf-8")
 
     def reply(who, lo, hi):
         if who == "structure":
@@ -232,7 +232,7 @@ def test_the_gate_and_verdict_agree_about_the_opening(kv, monkeypatch,
         return []
 
     seen = run_canned(kv, monkeypatch, src, out, reply)
-    got = out.read_text()
+    got = out.read_text(encoding="utf-8")
 
     assert {"structure", "summary"} <= {who for who, _unit in seen}, seen
 
@@ -269,7 +269,7 @@ def test_a_reported_line_is_the_line_the_author_wrote(kv, monkeypatch,
     worse it gets.
     """
     src, out = tmp_path / "w.md", tmp_path / "w.kv.md"
-    src.write_text(WRAPPED)
+    src.write_text(WRAPPED, encoding="utf-8")
     folded, spans = _fold(kv, WRAPPED)
 
     ln = max(i for i, t in enumerate(folded) if t.startswith("The fourth")) + 1
@@ -330,7 +330,7 @@ def test_an_exhausted_budget_stops_the_run_and_a_rerun_finishes_it(
         kv, monkeypatch, tmp_path, capsys):
     """T5. `--timeout` is the budget for the run, not for one call."""
     src, out = tmp_path / "d.md", tmp_path / "d.kv.md"
-    src.write_text(NOSUM)
+    src.write_text(NOSUM, encoding="utf-8")
 
     now = [0.0]
     real = kv.budget.Budget
@@ -382,7 +382,7 @@ def _heads(text):
 def test_a_described_move_is_made_or_listed(kv, monkeypatch, tmp_path, capsys):
     """T6. `structure` wrote the move it wanted as English and moved nothing."""
     src, out = tmp_path / "d.md", tmp_path / "d.kv.md"
-    src.write_text(MOVEDOC)
+    src.write_text(MOVEDOC, encoding="utf-8")
 
     asked = f"move ## What to send back from line {MOVED_FROM} to 3"
     declined = "move ## Overview from line 3 to 9, so no move needed"
@@ -395,9 +395,9 @@ def test_a_described_move_is_made_or_listed(kv, monkeypatch, tmp_path, capsys):
 
     assert "structure" in {who for who, _unit in seen}, seen
     assert _heads(MOVEDOC)[-1] == "## What to send back", "the fixture moved"
-    assert _heads(out.read_text()) == [
+    assert _heads(out.read_text(encoding="utf-8")) == [
         "# Platform notes", "## What to send back", "## Overview"], \
-        out.read_text()
+        out.read_text(encoding="utf-8")
     assert "1 section moved" in report, report
 
     assert declined in report, report

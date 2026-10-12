@@ -59,7 +59,7 @@ def test_no_margin_notice_still_warns_on_hard_wrapped_prose():
 
 def test_plan_end_to_end_on_one_line_list_items(tmp_path):
     doc = tmp_path / "list.md"
-    doc.write_text(ONE_LINE_LIST_DOC)
+    doc.write_text(ONE_LINE_LIST_DOC, encoding="utf-8")
     r = run_tool("plan", doc)
     assert r.returncode == 0, r.stdout + r.stderr
     assert "over more than one line" not in r.stderr, r.stderr

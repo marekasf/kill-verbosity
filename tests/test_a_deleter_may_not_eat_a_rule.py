@@ -175,12 +175,12 @@ RESTORED = """    if result.get("specialist") in DELETERS + MOVERS:
 
 def _mutant(tmp_path, old, new):
     """`_legacy.py` with one passage replaced, loaded from a COPY in tmp_path."""
-    src = (REPO / "killverbosity" / "_legacy.py").read_text()
+    src = (REPO / "killverbosity" / "_legacy.py").read_text(encoding="utf-8")
     assert src.count(old) == 1, (
         "the mutation target is not in the source exactly once, so this "
         "mutant would test nothing: %r" % old)
     path = tmp_path / "mutant_legacy.py"
-    path.write_text(src.replace(old, new))
+    path.write_text(src.replace(old, new), encoding="utf-8")
 
     name = "kv_mutant_%s" % tmp_path.name
     spec = importlib.util.spec_from_file_location(name, path)

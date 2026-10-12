@@ -12,8 +12,8 @@ import time
 
 def _verify(kv, tmp_path, orig, new, record=None):
     a, b = tmp_path / "o.md", tmp_path / "n.md"
-    a.write_text(orig)
-    b.write_text(new)
+    a.write_text(orig, encoding="utf-8")
+    b.write_text(new, encoding="utf-8")
     if record is not None:
         kv.write_run_record(b, **record)
         os.utime(kv.run_record_path(b), (time.time() + 5,) * 2)

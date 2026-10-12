@@ -53,7 +53,7 @@ def _canned(kv, monkeypatch, path, out, stop_after=None, agent_name=None,
 @pytest.fixture
 def doc(tmp_path):
     p = tmp_path / "doc.md"
-    p.write_text(DOC.read_text())
+    p.write_text(DOC.read_text(encoding="utf-8"), encoding="utf-8")
     return p
 
 
@@ -63,7 +63,7 @@ def test_a_killed_run_banks_what_it_answered(kv, monkeypatch, doc, tmp_path):
 
     assert len(asked) == 2
     rows = [json.loads(x)
-            for x in kv.journal_path(out).read_text().splitlines()]
+            for x in kv.journal_path(out).read_text(encoding="utf-8").splitlines()]
     assert len(rows) == 2
     assert {r["key"] for r in rows} == {kv.journal_key(p) for p in asked}
 
@@ -147,7 +147,7 @@ def test_a_crashing_job_does_not_take_the_others_answers_with_it(
     assert kv.journal_path(out).is_file(), \
         "a crash threw away every answer the run had already paid for"
     rows = [json.loads(x)
-            for x in kv.journal_path(out).read_text().splitlines()]
+            for x in kv.journal_path(out).read_text(encoding="utf-8").splitlines()]
     assert len(rows) == len(asked), \
         f"{len(asked)} answers bought, {len(rows)} banked"
 
@@ -176,7 +176,7 @@ def test_a_half_written_last_line_is_dropped(kv, tmp_path):
     out = tmp_path / "doc.kv.md"
     kv.journal_path(out).write_text(
         json.dumps({"source": "f", "key": "a", "result": {"edits": []}})
-        + '\n{"source": "f", "key": "b", "resu')
+        + '\n{"source": "f", "key": "b", "resu', encoding="utf-8")
 
     assert list(kv.read_journal(out, "f")) == ["a"]
 
@@ -186,7 +186,7 @@ def test_a_row_that_is_not_a_row_is_dropped(kv, tmp_path):
     out = tmp_path / "doc.kv.md"
     kv.journal_path(out).write_text(
         '3\n[]\n{"source": "f"}\n'
-        + json.dumps({"source": "f", "key": "a", "result": {"edits": []}}))
+        + json.dumps({"source": "f", "key": "a", "result": {"edits": []}}), encoding="utf-8")
 
     assert list(kv.read_journal(out, "f")) == ["a"]
 
