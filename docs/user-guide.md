@@ -151,6 +151,13 @@ exercise the gates on your own tree without calling an agent.
 | words replaced one-for-one | every place an edit put one word where another had been, with the new text around it. A substitution inside an otherwise untouched line is the one injury the document-wide checks cannot see |
 | GATES BROKEN | a check the tree itself declares (`.killverbosity.gates.json`) passed on the original and fails on the edit |
 
+**The `complexity:` line**: `plan` prints the reading level and the word variety
+of the prose. `verify` prints both for the original and the edit, as
+`before -> after`. ARI is a school-grade level; lower is easier to read. MTLD
+is how long the text runs before its words start to repeat; higher means more
+varied wording. Code, tables and URLs do not count. It is a report only and
+never blocks an edit.
+
 **`accept`**: puts the output in place of the input, once `verify` allows it.
 It first copies the current file to the first free `<name>.copyN.<ext>`. It
 warns when nobody has crosschecked the output; it does not refuse on that.

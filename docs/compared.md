@@ -1,21 +1,25 @@
-# kill-verbosity, ponytail and the Concise output style
+# kill-verbosity, ponytail, bro and the Concise output style
 
-Three ways to make an AI agent say less. They act on different things, so you
+Four ways to make an AI agent say less. They act on different things, so you
 use them together, not instead of each other.
 
-| | [`/output-style Concise`](https://code.claude.com/docs/en/output-styles) | [`/ponytail`](https://github.com/DietrichGebert/ponytail) | `/kill-verbosity` |
-|---|---|---|---|
-| Acts on | Claude's chat replies | the code Claude writes | files that already exist: docs, reports, agent output |
-| When | every reply, as it is written | every coding task, before the code exists | on demand, after the text exists |
-| What it does | leads with the result, skips narration | a "lazy senior dev" ladder: skip what isn't needed, reuse existing code, stdlib first, shortest working diff | splits the file and sends each kind of padding to its own [specialist](how-it-works.md) (noise, prose, structure, summary, …), then merges their line edits |
-| Large documents | no | no | yes: works section by section, so size doesn't matter |
-| Fact safety | none | none | refuses any edit that drops a number, path, identifier or rule, then [verifies the whole file](user-guide.md#what-each-command-answers) |
-| Structure | no | no | puts sections in reading order, folds duplicates, adds an opening summary |
-| Your file | — | — | never overwritten until you accept; all edits or none, with a backup |
+| | [`/output-style Concise`](https://code.claude.com/docs/en/output-styles) | [`/ponytail`](https://github.com/DietrichGebert/ponytail) | [`/bro`](https://github.com/luchasarie/bro-skill) | `/kill-verbosity` |
+|---|---|---|---|---|
+| Acts on | Claude's chat replies | the code Claude writes | the assistant's last reply | files that already exist: docs, reports, agent output |
+| When | every reply, as it is written | every coding task, before the code exists | on demand, after the reply | on demand, after the text exists |
+| What it does | leads with the result, skips narration | a "lazy senior dev" ladder: skip what isn't needed, reuse existing code, stdlib first, shortest working diff | re-explains the reply in plain words, keeps every fact verbatim, flattens structure | splits the file and sends each kind of padding to its own [specialist](how-it-works.md) (noise, prose, structure, summary, …), then merges their line edits |
+| Large documents | no | no | no | yes: works section by section, so size doesn't matter |
+| Fact safety | none | none | asks the model to keep every fact; no check | refuses any edit that drops a number, path, identifier or rule, then [verifies the whole file](user-guide.md#what-each-command-answers) |
+| Structure | no | no | flattens it | puts sections in reading order, folds duplicates, adds an opening summary |
+| Your file | — | — | not touched: it acts on one chat reply | never overwritten until you accept; all edits or none, with a backup |
 
 In short: **Concise** keeps the chat short, **ponytail** keeps the code small,
-**kill-verbosity** cleans the documents and outputs that already exist,
+**bro** explains the last reply in plain words, **kill-verbosity** cleans the documents and outputs that already exist,
 large ones included, without losing facts.
+
+The chat specialist of kill-verbosity now applies the two bro rules it was
+missing. It writes in a plain, direct voice. It turns headers and tables in a
+message into sentences.
 
 ## Output styles do not reach subagents
 
@@ -39,3 +43,4 @@ put the instruction in the subagent's prompt or its
 - [Known issues](known-issues.md)
 - Claude Code docs: [output styles](https://code.claude.com/docs/en/output-styles), [skills](https://code.claude.com/docs/en/skills)
 - [ponytail](https://github.com/DietrichGebert/ponytail)
+- [bro](https://github.com/luchasarie/bro-skill) (MIT)

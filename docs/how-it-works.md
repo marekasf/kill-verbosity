@@ -195,6 +195,25 @@ schedules nothing that can change it. Without them the tool never reaches a
 fixed point: on a transcript a whole run reduced to "add 341 words" and grew
 the file 4.5%.
 
+The `chat` specialist also holds two rules taken from the
+[bro](https://github.com/luchasarie/bro-skill) skill. The voice is plain and
+direct, as to a smart friend. Headers and tables in a message go: a header is
+dropped and a table becomes one plain sentence per row. A short list stays only
+when the message has separate parts.
+
+## The complexity line
+
+`plan` and `verify` print one line, `complexity: ARI … MTLD …`. `verify` prints
+the original and the edit side by side. ARI is the Automated Readability
+Index. MTLD is the Measure of Textual Lexical Diversity. Both read the prose
+only: code fences, inline code, tables and URLs are stripped first.
+
+These two were chosen for two reasons. Neither needs a syllable dictionary:
+ARI counts characters, and MTLD counts how often words repeat. And technical
+terms do not distort them, where a syllable-based score reads every long
+identifier as hard prose. The line is a report. No gate reads it, and it never
+changes an exit code.
+
 ## Why `structure` needs `move`
 
 `structure` is the specialist that can see the whole file, so it is the only

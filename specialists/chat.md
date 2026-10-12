@@ -30,6 +30,10 @@ ask.
 
 **Links inside a sentence** unless the link is the point.
 
+**Document furniture.** Headers and tables in a message. Drop the headers; a
+table becomes one plain sentence per row. Keep a short list only when the
+message really has separate parts.
+
 **No ask at the end.** End on one question or one offer, never on a plan for
 someone else's work.
 
@@ -44,5 +48,6 @@ decides what to drop, not you.
 
 ## Voice
 
+Plain and direct, as to a smart friend: "basically", "the point is" are fine.
 Match how the channel writes. Lower case sentence starts are usually right.
 Keep the language the message is written in. Do not translate.

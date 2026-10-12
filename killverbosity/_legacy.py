@@ -2722,6 +2722,7 @@ CROSSCHECK_TIMEOUT = 900
 from killverbosity import attribution
 from killverbosity import blame
 from killverbosity import budget
+from killverbosity import complexity
 from killverbosity import inflect
 from killverbosity import layout
 from killverbosity import mdblocks
@@ -7437,6 +7438,7 @@ def cmd_plan(args):
     if g["fact_counts"]:
         print("facts to preserve: "
               + ", ".join(f"{k} {v}" for k, v in g["fact_counts"].items()))
+    print(complexity.line(text))
     if args.chat and g["words"] > CHAT_MAX_WORDS:
         print(f"chat length: {g['words']} words. Past {CHAT_MAX_WORDS} a reply "
               f"reads as a document. Lead with the one point, send the rest "
@@ -8691,6 +8693,7 @@ def _cmd_verify(args):
               f"{getattr(args, 'project', None) or 'The declaration'} is what "
               f"decides this. Narrow `freeze.lines` if you meant to leave part "
               f"of the file in play; leave it if this file is out of scope.\n")
+    print(complexity.change_line(orig, new))
     _swaps = record.get("swaps") or []
     if _swaps:
         _flips = [x for x in _swaps if polarity_flip(x["was"], x["now"])]

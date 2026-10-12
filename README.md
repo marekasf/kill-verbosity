@@ -34,7 +34,7 @@ You can also just ask: *"kill the verbosity in docs/guide.md"*.
 - [User guide](docs/user-guide.md): commands, options, other agent CLIs
 - [How it works](docs/how-it-works.md)
 - [Known issues](docs/known-issues.md)
-- [kill-verbosity vs ponytail vs the Concise output style](docs/compared.md)
+- [kill-verbosity vs ponytail, bro and the Concise output style](docs/compared.md)
 - Claude Code docs: [skills](https://code.claude.com/docs/en/skills)
 
 ## License
