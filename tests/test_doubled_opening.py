@@ -24,8 +24,8 @@ BODY = ("The queue keeps one row per source file and the population grows "
 
 SECOND = ("## Summary\n\nOne row per file is no longer how the queue is built. "
           "Behaviour suites replace it, so the count reflects gaps in coverage "
-          "and not the size of the tree. CI users should read migration; "
-          "anyone deploying should read rollback first.")
+          "and not the size of the tree. CI users should read migration. "
+          "Anyone deploying should read rollback first.")
 
 
 @pytest.fixture

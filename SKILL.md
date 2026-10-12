@@ -81,11 +81,10 @@ kills the whole process tree, not just the CLI.
 **If the agent fails, the run falls back by itself.** The other installed
 CLIs are tried in turn, in the order `claude`, `codex`, `agy`, `delegate`,
 skipping the one already tried and any that is not on PATH. They share the
-job's remaining clock, so a fallback never overshoots the budget. With no
-`--agent` and no `KV_AGENT` the fall is silent: no error line, the job line
-carries `~`, and the `answered by:` line names who answered. When you named
-the agent, every fall is printed on stderr naming the job and the agent that
-answered instead. Either way the job is recorded as substituted. Only installation is checked, not quota
+job's remaining clock, so a fallback never overshoots the budget. A fall is
+normal and prints nothing: the `.kvrun` record names the agent that answered
+each job and marks a substituted one, and the `answered by:` line names who
+answered. Only installation is checked, not quota
 or login, so a signed-out CLI is tried and fails like any other.
 
 ### The tool does the work, not you
@@ -296,9 +295,8 @@ picks its own backend, so it has no fixed family); the writer is read
 from `.kvrun` or `.kvcross`, from the agents that actually answered and not
 only the one asked for. If the chosen reviewer is not installed, an installed
 non-writer is used instead. If the reviewer fails, the next installed
-non-writer is tried. When you named the reviewer, each fall prints a line on
-stderr naming who failed and who is next; otherwise the fall is silent. With
-none left, it prints one `crosscheck: not checked` line and exits 5. The reviewer reads sandboxed copies of
+non-writer is tried. A fall prints nothing, and the `.kvrun` record lists the
+candidates dispatched. With none left, it prints one `crosscheck: not checked` line and exits 5. The reviewer reads sandboxed copies of
 the files in a temporary directory and gets 900 seconds.
 
 Its findings are prose, so they do not change the exit code and they do not
@@ -574,7 +572,7 @@ next.
 | `noise` | section | what should not exist: process leak, editor note, draft diff, worklog, commit or checkout ref, unexplained reference, asks reader to verify, unsourced citation, citation plumbing, echo, empty framing, changelog narration, bare internal id, defers its own point |
 | `actionable` | section | every finding carries a problem, a fix and what the fix solves: parked problem, vague action, activity report, planning language |
 | `quotable` | section | the quote test, whether the line still means what it meant when lifted out alone: number without its noun, identifier as subject, evaluative adjective, inanimate perceiver, bare nominalisation, idiom |
-| `prose` | section | the words: frame, hedge, purpose hedge, wrapper, agreement move, jargon, nominalisation, X-not-Y, em-dash pressure, long sentence, paragraph wall, repeated list item, mixed list styles |
+| `prose` | section | the words: frame, hedge, purpose hedge, wrapper, agreement move, jargon, nominalisation, X-not-Y, em-dash pressure, long sentence, paragraph wall, repeated list item, mixed list styles, semicolon, passive voice |
 | `chat` | document | `--chat` only: colon label, message scaffold, omission note, sign-off, corrects the reader, buried lead |
 | `structure` | document | the job of the file, result first, one owner per fact, headings, duplicates. Moves whole sections. One shape: corporate header |
 | `summary` | document | the one-page opening summary a long document owes its reader. No shape of its own: it looks for an absence, and an absence never fires a rule |

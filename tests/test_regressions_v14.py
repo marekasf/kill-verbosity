@@ -59,7 +59,7 @@ The run reads the file and reports every shape that it found, and a note
 on the ordering is printed beside the list so the reader knows what it
 is looking at.
 
-The list is ordered by line so that a reader can walk the file from the
+The list follows line order so that a reader can walk the file from the
 top to the bottom while holding the printed report beside it as they go
 through it.
 

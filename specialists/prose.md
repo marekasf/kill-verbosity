@@ -162,3 +162,8 @@ least a quarter of the list. One odd item out is not a mixed list.
 Two items in the same list say the same thing. Keep the clearer one and delete
 the other. If they differ in a detail the shortened version would lose, merge
 them into one item instead.
+
+## semicolon, passive voice
+
+Split a sentence at its semicolon.
+Rewrite a passive sentence with the actor as the subject.

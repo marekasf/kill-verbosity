@@ -1571,6 +1571,9 @@ DEADLINE_WORD = re.compile(
     r"|remains? open|still open|not (?:yet )?done)\b", re.I)
 
 EXISTENCE = {
+    "semicolon": re.compile(';(?=\\s)'),
+    "passive voice": re.compile(
+        '\\b(?:is|are|was|were|be|been|being)\\s+(?:\\w+ly\\s+)?(?:\\w{3,}ed|done|made|given|taken|shown|written|known|seen|found|built|sent|kept|held)\\b\\s+by\\b'),
     "frame": re.compile(
         r"\b(?:one (?:more|caveat|note|thing|concern|honest note|last thing)\b[^.\n]{0,60}?"
         r"(?:before|because|worth|that shapes|to flag)"
@@ -2060,7 +2063,7 @@ def allowed_shapes(lines):
     return out
 
 
-CELL_BLIND = {"number without its noun", "worklog"}
+CELL_BLIND = {"number without its noun", "worklog", "semicolon"}
 
 
 _LIST_ITEM = re.compile(r"^(\s*)(?:[-*+]|\d+[.)]|[a-zA-Z][.)])\s+(.*)$")
@@ -3084,7 +3087,7 @@ SPECIALISTS = {
         "frame", "hedge", "purpose hedge", "wrapper", "agreement move",
         "jargon", "nominalisation", "X-not-Y", "em-dash pressure",
         "long sentence", "paragraph wall", "repeated list item",
-        "mixed list styles")),
+        "mixed list styles", "semicolon", "passive voice")),
     "chat": ("document", tuple(CHAT)),
     "structure": ("document", ("corporate header",)),
     "summary": ("document", ()),
@@ -6220,12 +6223,7 @@ def cmd_run(args, launcher=None):
         def _fell(msg, _j=job):
             if "failed, answered by" in msg:
                 _subst.append(msg)
-            # An agent nobody named falls back silently: the job line's `~`
-            # and the `answered by:` tail say who answered.
-            if not getattr(args, "agent_explicit", True):
-                return
-            print(f"  {_j['specialist']} {_j['unit']}: {msg}",
-                  file=sys.stderr, flush=True)
+            # A fall is silent: the run record says who answered.
 
         _kw = {}
         if _takes_say(launcher):
@@ -10803,9 +10801,6 @@ def cmd_crosscheck(args):
                 same_family_reason=_sf0_why, checked=False,
                 not_checked_reason=_reason, dispatched=[])
             return CROSSCHECK_NOT_CHECKED, Counter()
-        if _loud:
-            print(f"crosscheck: {backend} is not installed; falling to {_alt}.",
-                  file=sys.stderr)
         backend = _alt
     tried_walk = []
     _failed_reasons = []
@@ -10928,9 +10923,6 @@ def cmd_crosscheck(args):
                         not_checked_reason=_reason_all,
                         dispatched=list(tried_walk))
                     return CROSSCHECK_NOT_CHECKED, Counter()
-                if _loud:
-                    print(f"crosscheck: {_reason}; falling to {_next}.",
-                          file=sys.stderr)
                 backend = _next
                 continue
             _kinds = crosscheck_kinds(answer)
@@ -14256,7 +14248,7 @@ def cmd_selftest(_):
         _pj, {3: "## Summary\n\nThe importer resolves the manifest nightly."},
         {3: "summary"}), "a projected summary went unseen"
     _rt_line = _RD[2]
-    _rt_new = "Session rows are retained by a scalable store."
+    _rt_new = "A scalable store retains session rows."
 
     def _rt_reply(_p, _a, _n, _seen={}):
         _seen[_p] = _seen.get(_p, 0) + 1
@@ -17300,8 +17292,10 @@ def cmd_selftest(_):
 
     _owned = {n for _g in (EXISTENCE, SUBSTITUTION, OCCURRENCE, CHAT) for n in _g}
     assert _SHAPES_SEEN is not None, "the recorder never started"
-    assert len(_owned) >= 43, (
-        "find_shapes can emit %d categories and the floor is 43 - if a shape "
+    assert {"semicolon", "passive voice"} <= {h[1] for h in find_shapes(
+        ["The valve is closed by the operator; the pump stops."])}
+    assert len(_owned) >= 45, (
+        "find_shapes can emit %d categories and the floor is 45 - if a shape "
         "was retired on purpose, lower the floor in the same commit: %s"
         % (len(_owned), sorted(_owned)))
     _gap = sorted(_owned - (_SHAPES_SEEN or set()))

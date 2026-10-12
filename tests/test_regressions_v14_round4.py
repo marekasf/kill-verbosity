@@ -19,7 +19,7 @@ def _doc(*paragraphs):
 BODY = _doc(
     "The run reads the file and reports every shape that it found, and a\n"
     "note on the ordering is printed beside the list so a reader knows.",
-    "The list is ordered by line so that a reader can walk the file from\n"
+    "The list follows line order so that a reader can walk the file from\n"
     "the top to the bottom holding the printed report beside it.",
     "The second pass over the same output was measured across nine runs\n"
     "and bought very little, so the tool does not offer a revision pass.",

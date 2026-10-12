@@ -72,7 +72,7 @@ def _runfix(kv, monkeypatch, agent="codex"):
 def test_suggestion_excludes_the_backend_that_really_answered(kv, monkeypatch):
     rc, out, err, d = _runfix(kv, monkeypatch, agent="codex")
     try:
-        assert "SUBSTITUTED" in err, err
+        assert "SUBSTITUTED" not in err, err
         wrote = kv.answering_backends(kv.read_run_record(d / "doc.kv.md"))
         assert wrote and GOOGLE in wrote, wrote
 

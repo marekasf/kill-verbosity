@@ -201,6 +201,15 @@ direct, as to a smart friend. Headers and tables in a message go: a header is
 dropped and a table becomes one plain sentence per row. A short list stays only
 when the message has separate parts.
 
+kill-verbosity also applies the ASD-STE100 (Simplified Technical English)
+grammar rules that a pattern can check reliably. A semicolon splits a sentence,
+and a passive with "by" becomes active. These checks run on every document;
+nothing turns them on. Noun clusters were tried and dropped: without grammar
+parsing, they flagged hundreds of false positives on one document.
+
+A backend fallback is normal and prints nothing. The run record (`.kvrun`)
+names who answered each job and marks a substituted one.
+
 ## The complexity line
 
 `plan` and `verify` print one line, `complexity: ARI … MTLD …`. `verify` prints

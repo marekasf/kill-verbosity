@@ -113,9 +113,9 @@ removed. A stale record is marked stale.
 
 `--agent` names the agent asked first. If it fails on a job, the other
 installed CLIs are tried in turn (`claude`, `codex`, `agy`, `delegate`,
-skipping any not on PATH), sharing the job's remaining time. With no `--agent`
-this is silent; when you named one, each fallback is printed and the job is
-recorded as substituted. Only installation
+skipping any not on PATH), sharing the job's remaining time. A fallback
+is normal and prints nothing; the `.kvrun` record names the agent that answered
+each job and marks a substituted one. Only installation
 is checked, not quota or sign-in, so a signed-out CLI is tried and fails like
 any other.
 
@@ -228,8 +228,8 @@ past.
 
 5 means `crosscheck`'s reviewer never answered: every candidate outside the
 writer's family was missing or failed. It is not 1. With no review, nothing was
-found broken. Read stderr: each fallback names the failed candidate and the
-next one tried, and the last line names every candidate tried.
+found broken. The last stderr line names every candidate tried, and the `.kvrun` record
+lists the candidates dispatched.
 
 6 means a fallback answered every job in `run` instead of the `--agent` you
 named. An unset `--agent` never triggers it, and a partial substitution stays a
