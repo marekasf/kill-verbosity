@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import threading
 from pathlib import Path
 
 RUN_SUFFIX = ".kvrun"
@@ -17,6 +18,23 @@ def run_record_path(out_path: Path | str) -> Path:
 
 def journal_path(out_path: Path | str) -> Path:
     return Path(out_path).with_suffix(Path(out_path).suffix + JOURNAL_SUFFIX)
+
+
+_JOURNAL_LOCK = threading.Lock()
+
+
+def append_journal(out_path: Path | str, row: dict) -> None:
+    """One row onto the journal, whole, from any worker thread.
+
+    Append mode alone does not keep two writers apart on Windows: the C
+    runtime emulates it as a seek to the end followed by a write, and another
+    handle can land between the two. Two jobs finishing together then write
+    at one offset, one row is lost, and the rerun pays for that job again.
+    POSIX `O_APPEND` hides this, which is why only a Windows host saw it.
+    """
+    line = json.dumps(row) + "\n"
+    with _JOURNAL_LOCK, journal_path(out_path).open("a", encoding="utf-8") as f:
+        f.write(line)
 
 
 def crosscheck_record_path(out_path: Path | str) -> Path:
@@ -140,9 +158,8 @@ def journal_agents(out_path: Path | str, fingerprint: str) -> dict[str, int]:
 def bank_timeout(out_path: Path | str, fingerprint: str, job: str,
                  seconds: int) -> None:
     """Record that `job` ran out its whole `seconds` ceiling."""
-    with journal_path(out_path).open("a", encoding="utf-8") as bank:
-        bank.write(json.dumps({"source": fingerprint, "timeout": int(seconds),
-                               "job": job}) + "\n")
+    append_journal(out_path, {"source": fingerprint, "timeout": int(seconds),
+                              "job": job})
 
 
 def journal_timeouts(out_path: Path | str, fingerprint: str) -> dict[str, int]:

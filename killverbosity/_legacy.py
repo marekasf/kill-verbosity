@@ -408,6 +408,7 @@ from killverbosity.runrecord import (
     RUN_SUFFIX,
     answered_fields,
     answering_backends,
+    append_journal,
     baseline_path,
     cross_writers,
     crosscheck_findings,
@@ -6238,11 +6239,9 @@ def cmd_run(args, launcher=None):
             notes = notes + [f"{dropped} edits dropped: nothing "
                              f"matched in this file, so structure reports only"]
         answer = {"edits": edits, "notes": notes}
-        with journal_path(out_path).open("a", encoding="utf-8") as bank:
-            bank.write(json.dumps({"source": fingerprint, "key": key,
-                                   "result": {**answer, **_who,
-                                              "substituted": bool(_subst)}})
-                       + "\n")
+        append_journal(out_path, {"source": fingerprint, "key": key,
+                                  "result": {**answer, **_who,
+                                             "substituted": bool(_subst)}})
         return {**job, **answer, "substituted": bool(_subst), **_who}
 
     _first = ("summary", "structure")

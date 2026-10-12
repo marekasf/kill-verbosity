@@ -6,8 +6,11 @@ verify ran, so a verdict `accept` refuses still threw away every answer.
 
 from __future__ import annotations
 
+import builtins
+import io
 import json
 import sys
+import threading
 
 DOC = "\n".join(
     ["# Notes", "", "This paragraph wraps across", "two full lines on purpose.",
@@ -73,3 +76,75 @@ def test_a_completed_run_that_verify_does_not_fail_still_deletes_its_journal(
     assert rc == 3, rc
     assert not kv.journal_path(out).exists(), \
         "a REVIEW run left its journal behind"
+
+
+class _SeekThenWrite:
+    """A journal handle that appends the way the Windows C runtime does.
+
+    There, append mode is emulated: every write seeks to the end and then
+    writes, two steps another handle can land between. POSIX `O_APPEND` makes
+    them one, which is why this never fails on a POSIX host. The barrier holds
+    two writers between their seek and their write, so the race is certain
+    rather than a matter of timing; a writer the tool keeps alone times out of
+    the barrier and writes where the last one stopped.
+    """
+
+    def __init__(self, path, barrier):
+        self._path, self._barrier, self._text = path, barrier, []
+
+    def write(self, text):
+        self._text.append(text)
+        return len(text)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        data = "".join(self._text).encode("utf-8")
+        self._real_open(self._path, "ab").close()
+        with self._real_open(self._path, "r+b") as f:
+            f.seek(0, 2)
+            at = f.tell()
+            try:
+                self._barrier.wait(timeout=1)
+            except threading.BrokenBarrierError:
+                pass
+            f.seek(at)
+            f.write(data)
+        return False
+
+
+def test_two_answers_banked_at_once_both_survive_a_seek_then_write_append(
+        kv, monkeypatch, tmp_path, capsys):
+    """The four jobs land on a thread pool and each appends its own row.
+    Where append is seek-then-write, two rows written together share one
+    offset and one is lost, so the rerun after a verify FAIL paid for that job
+    again: 1 of 4 on a Windows host, never on a POSIX one."""
+    src, out = tmp_path / "doc.md", tmp_path / "doc.kv.md"
+    src.write_text(DOC + "\n", encoding="utf-8")
+    journal = str(kv.journal_path(out))
+    real_open = builtins.open
+    _SeekThenWrite._real_open = staticmethod(real_open)
+    barrier = threading.Barrier(2)
+
+    def opener(file, mode="r", *a, **k):
+        if mode == "a" and str(file) == journal:
+            return _SeekThenWrite(file, barrier)
+        return real_open(file, mode, *a, **k)
+
+    first, second = [], []
+    monkeypatch.setattr(builtins, "open", opener)
+    monkeypatch.setattr(io, "open", opener)
+    rc = _run(kv, monkeypatch, src, out, first, verify_rc=1)
+    monkeypatch.setattr(builtins, "open", real_open)
+    monkeypatch.setattr(io, "open", real_open)
+    capsys.readouterr()
+    assert rc == 1, rc
+    assert len(first) > 1, "one job cannot race itself; the case measures nothing"
+
+    rc2 = _run(kv, monkeypatch, src, out, second, verify_rc=1)
+    capsys.readouterr()
+    assert rc2 == 1, rc2
+    assert len(second) == 0, (
+        f"the rerun dispatched {len(second)} of {len(first)} jobs: rows the "
+        f"workers banked together overwrote each other in the journal")
